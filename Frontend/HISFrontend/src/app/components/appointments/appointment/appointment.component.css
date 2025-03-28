@@ -1,0 +1,72 @@
+.btn-notes {
+    background-color: #5399C5;
+    color: white;
+  }
+  
+  .btn-notes:hover {
+    background-color: #4283ac;
+    color: white;
+  }
+  .appointment-card {
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+  }
+  
+  .appointment-card:hover {
+    background-color: #e9ecef;
+  }
+  .btn-reschedule {
+    background-color: #59A78E;
+    color: white;
+  }
+  
+  .btn-reschedule:hover {
+    background-color: #488a74;
+    color: white;
+  }
+  
+  /* Modal/popup styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .notes-modal {
+    background-color: white;
+    border-radius: 5px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+    min-height: 100px;
+  }
+  
+  .modal-footer {
+    padding: 1rem;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .badge {
+    padding: 0.5em 0.8em;
+  }

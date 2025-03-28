@@ -1,0 +1,15 @@
+<header class="header-container mb-5">
+    <div class="logo">
+      <img src="https://s3-alpha-sig.figma.com/img/d43e/2506/7ccb476a2f96ca7051a2758bf04689e5?Expires=1743984000&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=Cuq0F27~-1A9vjkYR6R20FsPeaYL0OmnYNeapjL6N7CldjB5gw6sjiCV92avRsUUCkmH7OicosMxYDHc8k4aVZOW9hYG-8gjRgE~te7Szu9OrWXLNF9wHeKKu3Fcjx2VyqCplb0NX7RGAh6P88uwDt6Qj20Ie6xlksZ3edRIrqeyArgXizMrvxTQvfS4LZsWy8h0~os5T1H81kNCHjuvNNqUYQHxmHN6AxA4-8NiqklYqBxtqxc-dkD0-tZz5puLPNXj2Mo4AQG3hA1OhiGbIiLehpUvhCr7641Stojzay-V9YoEiWHeMLbZTTbjYic0n8Z6c9eRUguue-Rr8IAFHQ__" alt="Company Logo">
+      MediTrust
+
+    </div>
+    
+    <nav class="nav-items">
+      <ul>
+        @for (item of navItems; track item.name) {
+          <li><a [routerLink]="item.path">{{item.name}}</a></li>
+        }
+      </ul>
+    </nav>
+  </header>

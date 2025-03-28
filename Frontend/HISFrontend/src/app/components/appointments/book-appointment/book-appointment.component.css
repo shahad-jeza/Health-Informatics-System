@@ -1,0 +1,16 @@
+.btn-book-appointment {
+    background-color: #5399C5;
+    color: white;
+    border-color: #5399C5;
+  }
+  
+  .btn-book-appointment:hover {
+    background-color: #4283ac;
+    color: white;
+    border-color: #4283ac;
+  }
+  
+  .btn-book-appointment:disabled {
+    background-color: #5399C5;
+    opacity: 0.65;
+  }

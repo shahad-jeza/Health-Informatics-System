@@ -1,0 +1,52 @@
+<div class="container-fluid mt-4">
+  <div class="row justify-content-center">
+    <div class="col-11 col-xl-10">
+      <div class="dashboard-wrapper mx-md-4">
+        
+        <!-- Appointments Row -->
+        <div class="row d-flex equal-height-row">
+          <!-- Upcoming Appointments -->
+          <div class="col-md-6 mb-4 d-flex">
+            <app-appointments
+              class="w-100"
+              [appointmentsType]="'upcoming'"
+              [title]="'Upcoming Appointments'">
+            </app-appointments>
+          </div>
+
+          <!-- Past Appointments -->
+          <div class="col-md-6 mb-4 d-flex">
+            <app-appointments
+              class="w-100"
+              [appointmentsType]="'past'"
+              [title]="'Past Appointments'">
+            </app-appointments>
+          </div>
+        </div>
+
+        <!-- Summary and Booking Row -->
+        <div class="row mt-5 equal-height-row">
+          <!-- Patient Summary -->
+          <div class="col-md-6 mb-5 d-flex">
+            <app-patient-summary class="w-100"></app-patient-summary>
+          </div>
+          
+          <!-- Book Appointment -->
+          <div class="col-md-6 mb-5 d-flex">
+            <app-book-appointment class="w-100"></app-book-appointment>
+          </div>
+        </div>
+
+        <!-- Logout button -->
+        <div class="row mt-4 mb-5 justify-content-center">
+          <div class="col-auto">
+            <button class="btn btn-outline-danger bg-white px-4 py-2 fw-semibold" (click)="logout()">
+              Logout
+            </button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
