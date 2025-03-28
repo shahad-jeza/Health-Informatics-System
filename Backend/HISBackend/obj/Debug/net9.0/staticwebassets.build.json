@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "9ROX5uAVWTIIHm9HVGqOlD2xN4v2feUzG8FHXDGDuXM=",
+  "Source": "HISBackend",
+  "BasePath": "_content/HISBackend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

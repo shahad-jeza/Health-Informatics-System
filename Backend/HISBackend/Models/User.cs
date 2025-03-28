@@ -11,7 +11,7 @@ namespace HISBackend.Models
 
         public Guid UserId { get; set; }
 
-        [Required]
+        [Required, EmailAddress]
         public string Email { get; set; }
 
         public string PasswordHash { get; set; }
