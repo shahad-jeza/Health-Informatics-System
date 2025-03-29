@@ -4,17 +4,10 @@ import { BehaviorSubject, forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { Note } from '../../../models/note.model';
 import { NoteService } from '../../../services/notes/note.service';
-import { UserService } from '../../../services/users/user.service';
-import { HttpClient } from '@angular/common/http';
-
-interface MedicalRecord {
-  id: number;
-  historyID: string;
-  diagnosis: string;
-  allergies: string;
-  medicines: string;
-  patientId: number;
-}
+import { DoctorService } from '../../../services/doctor/doctor.service';
+import { MedicalHistoryService, MedicalRecord } from '../../../services/medicalHistory/medical-history.service';
+import { Appointment } from '../../../models/appointment.model';
+import { AppointmentService } from '../../../services/appointments/appointment.service'; 
 
 @Component({
   selector: 'app-patient-summary',
@@ -24,77 +17,122 @@ interface MedicalRecord {
   styleUrl: './patient-summary.component.css'
 })
 export class PatientSummaryComponent implements OnInit {
-  patientId = 1; // mockup
+  patientId = 1; // mockup 
   
-  notes$ = new BehaviorSubject<any[]>([]);
+  notes$ = new BehaviorSubject<Note[]>([]);
   medicalHistory$ = new BehaviorSubject<MedicalRecord[]>([]);
   loading$ = new BehaviorSubject<boolean>(true);
   error$ = new BehaviorSubject<string | null>(null);
   
   doctorNames: Map<number, string> = new Map();
   
-  private apiUrl = 'http://localhost:5066/api';
-  
   constructor(
     private noteService: NoteService,
-    private userService: UserService,
-    private http: HttpClient
+    private doctorService: DoctorService,
+    private medicalHistoryService: MedicalHistoryService,
+    private appointmentService: AppointmentService
   ) {}
   
   ngOnInit(): void {
     this.loadData();
   }
+  appointments: Appointment[] = [];
 
   loadData(): void {
     this.loading$.next(true);
     this.error$.next(null);
     
-    // load doctors 
-    this.userService.getUsersByRole('doctor').pipe(
-      catchError(err => {
-        console.error('Error loading doctors:', err);
-        return of([]);
-      })
-    ).subscribe(doctors => {
-      // Create map of doctor IDs to names
-      doctors.forEach(doctor => {
-        this.doctorNames.set(doctor.id, doctor.name);
-      });
-      
-      // Load medical history
-      this.http.get<MedicalRecord[]>(`${this.apiUrl}/medical-records/patient/${this.patientId}`).pipe(
+    this.doctorService.getAllDoctors().subscribe(() => {
+      this.appointmentService.getPatientAppointments(this.patientId).pipe(
         catchError(err => {
-          console.error('Error loading medical history:', err);
+          console.error('Error loading appointments:', err);
           return of([]);
         })
-      ).subscribe(history => {
-        this.medicalHistory$.next(history);
+      ).subscribe(appointments => {
+        this.appointments = appointments; 
+        console.log(`Loaded ${appointments.length} appointments for patient`);
         
-        // Load all notes for the patient
-        this.noteService.getNotesByPatientId(this.patientId).pipe(
-          catchError(err => {
-            console.error('Error loading patient notes:', err);
-            return of([]);
-          }),
+        // load notes and medical history
+        forkJoin({
+          history: this.medicalHistoryService.getPatientHistory(this.patientId).pipe(
+            catchError(err => {
+              console.error('Error loading medical history:', err);
+              this.error$.next('Failed to load medical history. Please try again.');
+              return of([]);
+            })
+          ),
+          notes: this.noteService.getNotesByPatientId(this.patientId).pipe(
+            catchError(err => {
+              console.error('Error loading patient notes:', err);
+              this.error$.next('Failed to load patient notes. Please try again.');
+              return of([]);
+            })
+          )
+        }).pipe(
           finalize(() => this.loading$.next(false))
-        ).subscribe(notes => {
-          this.notes$.next(notes);
+        ).subscribe(result => {
+          this.medicalHistory$.next(result.history);
+          this.notes$.next(result.notes);
         });
       });
     });
   }
   
-  getDoctorName(doctorId: number): string {
-    return this.doctorNames.get(doctorId) || 'Unknown Doctor';
+  getDoctorName(doctorId: number | undefined): string {
+    const doctorName = this.doctorService.getDoctorNameFromCache(doctorId);
+    
+    if (doctorName) {
+      return doctorName;
+    }
+    
+    // If not in cache, trigger an async load 
+    this.doctorService.getDoctorNameById(doctorId).subscribe();
+    return 'Loading...';
   }
   
-  formatDate(dateString: string): string {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
+
+getDoctorNameFromAppointmentId(appointmentId: number): string {
+  // check if we have appointments loaded
+  const appointments = this.appointments || [];
+  
+  // Find the appointment with the matching ID
+  const appointment = appointments.find(a => a.id === appointmentId);
+  
+  if (!appointment) {
+    console.log(`Appointment not found for ID: ${appointmentId}`);
+    return 'Unknown Doctor';
   }
+
+  return this.getDoctorName(appointment.doctorId);
+}
+
+
+formatAppointmentDate(appointmentId: number): string {
+  const appointment = this.appointments.find(a => a.id === appointmentId);
+  
+  if (!appointment) {
+    return 'Unknown Date';
+  }
+  
+  // Format the date from the appointment
+  return this.formatDate(appointment.date);
+}
+
+formatDate(dateStr: string): string {
+  if (!dateStr) {
+    return 'N/A';
+  }
+  
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateStr; 
+  }
+}
 }

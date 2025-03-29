@@ -1,12 +1,10 @@
 export interface Doctor {
-    id: number;
-    firstName: string;
-    lastName: string;
-    specialization: string;
-    email: string;
-    phone: string;
-    availability?: string[];
-  }
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  specialization?: string;
+  name?: string;  
+}
   
   export interface DoctorState {
     doctors: Doctor[];

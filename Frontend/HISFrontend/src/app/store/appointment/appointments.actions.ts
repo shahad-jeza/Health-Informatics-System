@@ -1,6 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 import { Appointment } from '../../models/appointment.model';
-
+import { User } from '../../models/user.model';
 // Load appointments
 export const loadAppointments = createAction(
   '[Appointments] Load Appointments',
@@ -55,8 +55,8 @@ export const loadAvailableSlots = createAction(
 );
 
 export const loadAvailableSlotsSuccess = createAction(
-  '[Appointments] Load Available Slots Success',
-  props<{ appointments: Appointment[] }>()
+  '[Appointment] Load Available Slots Success',
+  props<{ doctors: User[] }>() 
 );
 
 export const loadAvailableSlotsFailure = createAction(
@@ -89,4 +89,24 @@ export const selectAppointment = createAction(
 // Clear booking state
 export const resetBookingState = createAction(
   '[Appointments] Reset Booking State'
+);
+
+export const createAppointment = createAction(
+  '[Appointment] Create Appointment',
+  props<{ appointment: Appointment }>()
+);
+
+
+export const loadAvailableAppointments = createAction(
+  '[Appointments] Load Available Appointments'
+);
+
+export const loadAvailableAppointmentsSuccess = createAction(
+  '[Appointments] Load Available Appointments Success',
+  props<{ appointments: Appointment[] }>()
+);
+
+export const loadAvailableAppointmentsFailure = createAction(
+  '[Appointments] Load Available Appointments Failure',
+  props<{ error: any }>()
 );

@@ -13,30 +13,28 @@
     </div>
 
     <div *ngIf="!loading && !error">
-      <div *ngFor="let appointment of appointments" class="appointment-card mb-3 p-3 border rounded">
+      <div *ngFor="let appointment of appointments" class="appointment-card mb-3 py-1 border rounded">
         <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <p class="fw-bold mb-1">{{ getDoctorName(appointment.doctorId) }}</p>
+          <div class="d-flex align-items-center">
+            <p class="fw-bold mb-1 ms-2">{{ getDoctorName(appointment.doctorId) }}</p>
             <p class="mb-0 text-muted">
-              <i class="bi bi-calendar"></i> {{ appointment.date }} at {{ appointment.time }}
+              <i class="bi bi-calendar ms-2"></i> {{ appointment.date }} at {{ appointment.time }}
             </p>
           </div>
           <div>
-        <!-- Past appointments: View Notes button -->
+        <!-- Past appointments -->
         <button *ngIf="appointmentsType === 'past'" 
-                class="btn btn-sm btn-primary py-1 border rounded-2 me-2"
-                data-bs-toggle="modal"
-                data-bs-target="#notesModal"
-                (click)="prepareNotesData(appointment.id)">
+                class="btn-notes btn btn-sm btn-primary py-1 border rounded-2 me-3 mb-1 mt-1"
+                (click)="viewNotes(appointment.id)">
           <i class="bi bi-journal-text"></i> View Notes
         </button>
             
             <!-- Upcoming appointments -->
             <div *ngIf="appointmentsType === 'upcoming'" class="d-flex">
-              <button class="btn btn-sm btn-outline-secondary py-1 border rounded-2 me-2" (click)="rescheduleAppointment(appointment.id)">
+              <button class="btn-reschedule btn btn-sm btn-outline-secondary py-1 border rounded-2 me-2 mb-1 mt-1" (click)="rescheduleAppointment(appointment.id)">
                 <i class="bi bi-calendar-check"></i> Reschedule
               </button>
-              <button *ngIf="appointment.status === 'scheduled'" class="btn btn-sm btn-danger py-1 border rounded-2" (click)="cancelAppointment(appointment.id)">
+              <button *ngIf="appointment.status === 'scheduled'" class="btn btn-sm btn-danger py-1 border rounded-2 me-3 mb-1 mt-1" (click)="cancelAppointment(appointment.id)">
                 <i class="bi bi-x-circle"></i> Cancel
               </button>
             </div>
@@ -50,59 +48,38 @@
     </div>
   </div>
 </div>
-
-<!-- Notes Modal -->
+<!-- Notes modal -->
 <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="notesModalLabel">Appointment Notes</h5>
+        <h5 class="modal-title">Notes Modal</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3">
-          <p><strong>Doctor:</strong> {{ selectedAppointmentDoctor }}</p>
-          <p><strong>Date:</strong> {{ selectedAppointmentDate }} at {{ selectedAppointmentTime }}</p>
-        </div>
-        
-        <div *ngIf="loadingNotes" class="text-center">
-          <div class="spinner-border spinner-border-sm" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <span class="ms-2">Loading notes...</span>
-        </div>
-        
-        <div *ngIf="notesError" class="alert alert-danger">
-          {{ notesError }}
-        </div>
-        
-        <div *ngIf="!loadingNotes && !notesError">
-          <div *ngIf="appointmentNotes.length === 0" class="alert alert-info">
-            No notes available for this appointment.
-          </div>
-          
-          <div *ngFor="let note of appointmentNotes" class="card bg-light mb-3 p-3">
-            <div class="d-flex justify-content-between mb-2">
-              <small class="text-muted">{{ note.createdAt | date:'medium' }}</small>
+
+        <div class="note-list">
+          <div *ngFor="let note of modalNotes; let i = index" class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Note #{{ i + 1 }}</h5>
+              <p>{{ note.content }}</p>
             </div>
-            <p class="mb-0">{{ note.content }}</p>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" (click)="closeModal('notesModal')">Close</button>
       </div>
     </div>
   </div>
 </div>
-
 <!-- Reschedule Modal -->
 <div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="rescheduleModalLabel">Reschedule Appointment</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" (click)="closeModal('rescheduleModal')" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
@@ -140,7 +117,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" (click)="closeModal('rescheduleModal')">Cancel</button>
         <button 
           type="button" 
           class="btn btn-primary" 

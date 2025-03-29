@@ -8,12 +8,14 @@
     color: white;
   }
   .appointment-card {
-    background-color: #f8f9fa;
+    background-color: #fff;
     transition: all 0.3s ease;
+    border-color: #495057;
   }
   
   .appointment-card:hover {
     background-color: #e9ecef;
+    
   }
   .btn-reschedule {
     background-color: #59A78E;

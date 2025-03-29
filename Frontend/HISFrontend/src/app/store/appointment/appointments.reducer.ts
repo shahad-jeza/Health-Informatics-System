@@ -25,12 +25,11 @@ export const appointmentReducer = createReducer(
   })),
   
   // Cancellation
-  on(AppointmentActions.cancelAppointment, (state) => ({
-    ...state,
-    loading: true
-  })),
-  
   on(AppointmentActions.cancelAppointmentSuccess, (state, { appointmentId }) => {
+    // Find the appointment being canceled
+    const appointment = state.upcoming.find(app => app.id === appointmentId);
+    
+    // Filter it out from upcoming appointments
     const updatedUpcoming = state.upcoming.filter(app => app.id !== appointmentId);
     
     return {
@@ -39,12 +38,6 @@ export const appointmentReducer = createReducer(
       loading: false
     };
   }),
-  
-  on(AppointmentActions.cancelAppointmentFailure, (state, { error }) => ({
-    ...state,
-    error,
-    loading: false
-  })),
   
   // Rescheduling
   on(AppointmentActions.rescheduleAppointment, (state) => ({
@@ -83,9 +76,10 @@ export const appointmentReducer = createReducer(
     error: null
   })),
   
-  on(AppointmentActions.loadAvailableSlotsSuccess, (state, { appointments }) => ({
+  // Changed to handle doctors instead of appointments
+  on(AppointmentActions.loadAvailableSlotsSuccess, (state, { doctors }) => ({
     ...state,
-    availableSlots: appointments,
+    availableDoctors: doctors, 
     loading: false
   })),
   
@@ -106,14 +100,9 @@ export const appointmentReducer = createReducer(
   on(AppointmentActions.bookAppointmentSuccess, (state, { appointment }) => {
     const updatedUpcoming = [...state.upcoming, appointment];
     
-    const updatedAvailableSlots = state.availableSlots.filter(
-      slot => slot.id !== appointment.id
-    );
-    
     return {
       ...state,
       upcoming: updatedUpcoming,
-      availableSlots: updatedAvailableSlots,
       bookingInProgress: false,
       bookingSuccess: true
     };

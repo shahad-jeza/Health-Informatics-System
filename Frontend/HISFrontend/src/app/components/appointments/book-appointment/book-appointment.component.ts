@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AppointmentService } from '../../../services/appointments/appointment.service';
+import { DoctorService } from '../../../services/doctor/doctor.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
-
-import * as AppointmentActions from '../../../store/appointment/appointments.actions';
-import * as AppointmentSelectors from '../../../store/appointment/appointments.selectors';
+import { forkJoin } from 'rxjs';
+import { User } from '../../../models/user.model';
+import { Appointment } from '../../../models/appointment.model';
 
 @Component({
   selector: 'app-book-appointment',
@@ -15,69 +14,117 @@ import * as AppointmentSelectors from '../../../store/appointment/appointments.s
   templateUrl: './book-appointment.component.html',
   styleUrls: ['./book-appointment.component.css']
 })
-export class BookAppointmentComponent implements OnInit, OnDestroy {
+export class BookAppointmentComponent implements OnInit {
   selectedAppointmentId: string = '';
-  appointmentOptions: any[] = [];
+  appointmentOptions: { value: string, label: string }[] = [];
   loading: boolean = false;
   error: boolean = false;
   
-  private destroy$ = new Subject<void>();
-  
-  constructor(private store: Store) {}
+  constructor(
+    private appointmentService: AppointmentService,
+    private doctorService: DoctorService
+  ) {}
   
   ngOnInit(): void {
-    // Load available slots
-    this.store.dispatch(AppointmentActions.loadAvailableSlots());
+    this.loadAvailableAppointments();
+  }
+  
+  loadAvailableAppointments(): void {
+    this.loading = true;
+    this.error = false;
     
-    // Subscribe to available slots
-    this.store.select(AppointmentSelectors.selectAvailableSlotsFormatted)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(options => {
-        this.appointmentOptions = options;
-      });
-      
-    // Subscribe to loading state
-    this.store.select(AppointmentSelectors.selectAppointmentsLoading)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(loading => {
-        this.loading = loading;
-      });
-      
-    // Subscribe to error state
-    this.store.select(AppointmentSelectors.selectAppointmentsError)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(error => {
-        this.error = !!error;
-      });
-      
-    // Handle booking success
-    this.store.select(AppointmentSelectors.selectBookingSuccess)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(success => {
-        if (success) {
-          alert('Appointment booked successfully!');
-          this.selectedAppointmentId = '';
-          this.store.dispatch(AppointmentActions.resetBookingState());
-          // Refresh available slots
-          this.store.dispatch(AppointmentActions.loadAvailableSlots());
-        }
-      });
+    // Use forkJoin to get both appointments and doctors in parallel
+    forkJoin({
+      appointments: this.appointmentService.getAvailableAppointments(),
+      doctors: this.doctorService.getAllDoctors()
+    }).subscribe({
+      next: ({ appointments, doctors }) => {
+
+        const doctorMap = new Map();
+        doctors.forEach(doctor => {
+          doctorMap.set(doctor.id, doctor);
+        });
+        
+        this.appointmentOptions = appointments.map(appointment => {
+          const value = `${appointment.id}`;
+          
+          // Get doctor from map
+          const doctor = doctorMap.get(appointment.doctorId);
+          
+          let doctorName = 'Unknown Doctor';
+          if (doctor) {
+            if (doctor.firstName && doctor.lastName) {
+              doctorName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
+            } else if (doctor.name) {
+              const nameParts = doctor.name.replace(/^Dr\.\s+/, '').split(' ');
+              if (nameParts.length >= 2) {
+                doctorName = `Dr. ${nameParts[0]} ${nameParts.slice(1).join(' ')}`;
+              } else {
+                doctorName = doctor.name; 
+              }
+            } else {
+              doctorName = `Doctor (ID: ${doctor.id})`;
+            }
+
+            if (doctor.specialization) {
+              doctorName += ` (${doctor.specialization})`;
+            }
+          }
+          
+          const label = `${doctorName} - ${appointment.date} at ${appointment.time}`;
+          
+          return { value, label };
+        });
+        
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.error = true;
+        this.loading = false;
+      }
+    });
   }
   
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-  
-  bookAppointment() {
+  bookAppointment(): void {
     if (!this.selectedAppointmentId) {
-      alert('Please select an appointment first');
+      alert('Please select an appointment slot');
       return;
     }
     
-    this.store.dispatch(AppointmentActions.bookAppointment({
-      appointmentId: parseInt(this.selectedAppointmentId),
-      patientId: 1 // mockup
-    }));
+    const appointmentId = parseInt(this.selectedAppointmentId);
+    console.log('Booking appointment ID:', appointmentId);
+    
+
+    this.appointmentService.bookAppointment(appointmentId, 1) // 1 is mock patient ID
+      .subscribe({
+        next: (result) => {
+          console.log('Appointment booked successfully:', result);
+          alert('Appointment booked successfully!');
+          this.selectedAppointmentId = '';
+          // Reload available appointments
+          this.loadAvailableAppointments();
+        },
+        error: (error) => {
+          console.error('Error booking appointment:', error);
+          console.error('Error details:', error.error);
+          
+          let errorMsg = 'Failed to book appointment. ';
+          
+          if (error.status === 404) {
+            errorMsg += 'The appointment was not found.';
+          } else if (error.status === 400) {
+            errorMsg += `Invalid appointment data: ${JSON.stringify(error.error)}`;
+          } else if (error.status === 403) {
+            errorMsg += 'You do not have permission to book this appointment.';
+          } else if (error.status === 409) {
+            errorMsg += 'This appointment has already been booked.';
+          } else {
+            errorMsg += 'Please try again later.';
+          }
+          
+          alert(errorMsg);
+        }
+      });
   }
 }
