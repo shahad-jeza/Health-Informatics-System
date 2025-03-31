@@ -1,5 +1,7 @@
 export interface Note {
   id: number;
+  noteId: string; 
+  noteText: string; 
   appointmentId: number;
-  content: string;
+  medicalHistoryId: number;
 }

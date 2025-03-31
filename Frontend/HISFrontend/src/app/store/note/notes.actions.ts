@@ -1,9 +1,10 @@
 import { createAction, props } from '@ngrx/store';
 import { Note } from './notes.state';
 
+// GET /api/Note/patient/{patientUserId}
 export const loadNotesByPatient = createAction(
   '[Note] Load Notes By Patient',
-  props<{ patientId: number }>()
+  props<{ patientUserId: string }>() 
 );
 
 export const loadNotesByPatientSuccess = createAction(
@@ -16,45 +17,7 @@ export const loadNotesByPatientFailure = createAction(
   props<{ error: any }>()
 );
 
-export const addNote = createAction(
-  '[Note] Add Note',
-  props<{ note: Note }>()
-);
-
-export const addNoteSuccess = createAction(
-  '[Note] Add Note Success',
-  props<{ note: Note }>()
-);
-
-export const addNoteFailure = createAction(
-  '[Note] Add Note Failure',
-  props<{ error: any }>()
-);
-
-export const loadNotesByAppointment = createAction(
-  '[Notes] Load Notes By Appointment',
-  props<{ appointmentId: number; patientId: number }>() 
-);
-
-export const loadNotesByAppointmentSuccess = createAction(
-  '[Notes] Load Notes By Appointment Success',
-  props<{ notes: Note[]; appointmentId: number }>() 
-);
-
-export const loadNotesByAppointmentFailure = createAction(
-  '[Notes] Load Notes By Appointment Failure',
-  props<{ error: any; appointmentId: number }>()
-);
-
-export const selectNote = createAction(
-  '[Note] Select Note',
-  props<{ noteId: number }>()
-);
-
-export const clearSelectedNote = createAction(
-  '[Note] Clear Selected Note'
-);
-
+// Utility action for clearing errors
 export const clearNoteErrors = createAction(
   '[Note] Clear Errors'
 );

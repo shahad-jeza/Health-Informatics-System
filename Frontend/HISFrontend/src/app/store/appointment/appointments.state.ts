@@ -1,24 +1,31 @@
-import { Appointment } from '../../models/appointment.model';
-import { User } from '../../models/user.model';
+import { Appointment } from "../../models/appointment.model";
+import { Doctor } from "../doctor/doctor.state";
 
 export interface AppointmentState {
   upcoming: Appointment[];
   past: Appointment[];
-  availableDoctors: User[]; 
-  selectedAppointmentId: number | null;
+  doctorAppointments: Appointment[];
+  doctorAppointmentsLoading: boolean;
+  availableDoctors: Doctor[];
+  selectedAppointmentId: string | null;
   loading: boolean;
-  error: any;
+  error: string | null;
   bookingInProgress: boolean;
   bookingSuccess: boolean;
+  appointments: Appointment[]; 
 }
+
 
 export const initialAppointmentState: AppointmentState = {
   upcoming: [],
   past: [],
-  availableDoctors: [], 
+  doctorAppointments: [],
+  doctorAppointmentsLoading: false,
+  availableDoctors: [],
   selectedAppointmentId: null,
   loading: false,
   error: null,
   bookingInProgress: false,
-  bookingSuccess: false
+  bookingSuccess: false,
+  appointments: []
 };

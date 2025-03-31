@@ -1,21 +1,18 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { AppointmentService } from '../../../services/appointments/appointment.service';
-import { DoctorService } from '../../../services/doctor/doctor.service';
-import { Appointment } from '../../../models/appointment.model';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Appointment, AppointmentStatus } from '../../../models/appointment.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Note } from '../../../models/note.model';
-import { NoteService } from '../../../services/notes/note.service';
 import { Store } from '@ngrx/store';
-import * as NoteActions from '../../../store/note/notes.actions';
-import * as NoteSelectors from '../../../store/note/notes.selectors';
+import { Observable, Subscription } from 'rxjs';
+import { Doctor } from '../../../store/doctor/doctor.state';
+import { AppointmentService } from '../../../services/appointments/appointment.service';
 import * as DoctorActions from '../../../store/doctor/doctor.actions';
 import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
-import * as AppointmentActions from '../../../store/appointment/appointments.actions'
-import { Observable } from 'rxjs';
-import { tap, switchMap, filter } from 'rxjs/operators';
-import { BehaviorSubject, catchError, finalize, of } from 'rxjs';
-
+import * as NoteActions from '../../../store/note/notes.actions';
+import * as NoteSelectors from '../../../store/note/notes.selectors';
+import * as AppointmentActions from '../../../store/appointment/appointments.actions';
+import * as AppointmentSelectors from '../../../store/appointment/appointments.selectors';
+import { Note } from '../../../store/note/notes.state';
 
 @Component({
   selector: 'app-appointments',
@@ -24,330 +21,334 @@ import { BehaviorSubject, catchError, finalize, of } from 'rxjs';
   standalone: true,
   imports: [CommonModule, FormsModule],
 })
-export class AppointmentComponent implements OnInit {
-  @Input() appointmentsType: 'upcoming' | 'past' = 'upcoming';
+export class AppointmentComponent implements OnInit, OnDestroy {
+  AppointmentStatus = AppointmentStatus;
   @Input() title?: string;
+  
+  // Data to display
   appointments: Appointment[] = [];
-  doctors: Map<number, string> = new Map();
-  loading = true;
+  doctors$: Observable<Doctor[]>;
+  private _allAppointments: Appointment[] = [];
+  appointments$: Observable<Appointment[]>;
+  appointmentsLoading$: Observable<boolean>;
+  appointmentsError$: Observable<string | null>;
+  loading = true;  
   error: string | null = null;
+  
+  // Patient ID (mocked for now)
+  patientUserId = '33333333-3333-3333-3333-333333333333';
+  
+  // Cached doctor map for performance
+  doctorMap: Map<string, Doctor> = new Map();
+  
+  // UI state variables
   successMessage: string | null = null;
-  
-  
-  // Get notes 
-  appointmentNotes$ = new BehaviorSubject<Note[]>([]);
-  loadingNotes$ = new BehaviorSubject<boolean>(false);
-  notesError$ = new BehaviorSubject<string | null>(null);
-  
-  
-
-  // Modal state variables
-  selectedAppointmentId: number | null = null;
-  selectedAppointmentDoctor: string = '';
-  selectedAppointmentDate: string = '';
-  selectedAppointmentTime: string = '';
-  selectedAppointmentNotes: string = '';
-  
-  // Reschedule form values
-  newAppointmentDate: string = '';
-  newAppointmentTime: string = '';
-  availableTimes: string[] = ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'];
-  rescheduleError: string | null = null;
-  rescheduleSuccess: boolean = false;
   errorMessage: string | null = null;
+  
+  // Modal state variables
+  selectedAppointment: Appointment | null = null;
+  
+  // Notes modal state
+  modalNotes: Note[] = [];
+  modalNotesLoading = false;
+  modalNotesError: string | null = null;
+  newNoteText: string = '';
+  showNotesModal = false;
+  
+  // Subscriptions
+  private subscriptions: Subscription[] = [];
+  
+  // Cancellation modal state
+  showCancelModal = false;
+  appointmentToCancel: Appointment | null = null;
+
+  // Input property with getter/setter
+  @Input() set appointmentsType(value: 'upcoming' | 'past') {
+    const oldValue = this._appointmentsType;
+    this._appointmentsType = value;
+    
+    if (this._allAppointments.length > 0 && oldValue !== value) {
+      this.filterAppointments();
+    }
+  }
+  
+  get appointmentsType(): 'upcoming' | 'past' {
+    return this._appointmentsType;
+  }
+  
+  private _appointmentsType: 'upcoming' | 'past' = 'upcoming';
 
   constructor(
-    private appointmentService: AppointmentService,
-    private doctorService: DoctorService,
-    private noteService: NoteService,
     private store: Store,
-    
-    
-    
+    private appointmentService: AppointmentService
   ) {
-
+    this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
+    this.appointments$ = this.store.select(AppointmentSelectors.selectAllAppointments);
+    this.appointmentsLoading$ = this.store.select(AppointmentSelectors.selectAppointmentsLoading);
+    this.appointmentsError$ = this.store.select(AppointmentSelectors.selectAppointmentsError);
   }
 
   ngOnInit(): void {
-    // Load doctors from the store
     this.store.dispatch(DoctorActions.loadDoctors());
     
-    // Subscribe to doctors from the store
-    this.store.select(DoctorSelectors.selectAllDoctors).subscribe(doctors => {
-      // Update doctors map 
-      doctors.forEach((doctor) => {
-        if (doctor.firstName && doctor.lastName) {
-          this.doctors.set(doctor.id, `Dr. ${doctor.firstName} ${doctor.lastName}`);
-        } else if (doctor.name) {
-          // Handle case where doctor only has name property
-          const nameParts = doctor.name.replace(/^Dr\.\s+/, '').split(' ');
-          if (nameParts.length >= 2) {
-            const firstName = nameParts[0];
-            const lastName = nameParts.slice(1).join(' ');
-            this.doctors.set(doctor.id, `Dr. ${firstName} ${lastName}`);
-          } else {
-            this.doctors.set(doctor.id, doctor.name);
-          }
-        } else {
-          this.doctors.set(doctor.id, `Doctor (ID: ${doctor.id})`);
+    setTimeout(() => {
+      this.store.dispatch(AppointmentActions.getAppointmentsByPatient({ 
+        patientId: this.patientUserId 
+      }));
+    }, 500);
+    
+    const doctorsSub = this.doctors$.subscribe(doctors => {
+      this.doctorMap.clear();
+      
+      doctors.forEach(doctor => {
+        // Store by userId (GUID)
+        if (doctor.userId) {
+          this.doctorMap.set(doctor.userId, doctor);
+        }
+
+        if (doctor.id) {
+          this.doctorMap.set(doctor.id.toString(), doctor);
         }
       });
-      
-      // Once doctors are loaded, fetch appointments
-      this.fetchData();
     });
+    this.subscriptions.push(doctorsSub);
     
+    // Subscribe to appointments
+    const appointmentsSub = this.appointments$.subscribe(appointments => {
+      if (!appointments) {
+        this._allAppointments = [];
+        this.appointments = [];
+        return;
+      }
+      
+      this._allAppointments = appointments;
+      this.filterAppointments();
+    });
+    this.subscriptions.push(appointmentsSub);
+    
+    // Subscribe to loading state
+    const loadingSub = this.appointmentsLoading$.subscribe(loading => {
+      this.loading = loading;
+    });
+    this.subscriptions.push(loadingSub);
+    
+    // Subscribe to error state
+    const errorSub = this.appointmentsError$.subscribe(error => {
+      this.error = error;
+    });
+    this.subscriptions.push(errorSub);
+  }
+  
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+  
+  // Filter appointments based on the appointmentsType
+  private filterAppointments(): void {
+    const currentDate = new Date();
+    
+    if (this.appointmentsType === 'upcoming') {
+      // For upcoming, include appointments today or in the future
+      this.appointments = this._allAppointments.filter(appointment => {
+        try {
+          const appointmentDate = new Date(appointment.date);
+          return appointmentDate >= currentDate;
+        } catch (e) {
+          return false;
+        }
+      });
+    } else {
+      // For past, include appointments before today
+      this.appointments = this._allAppointments.filter(appointment => {
+        try {
+          const appointmentDate = new Date(appointment.date);
+          return appointmentDate < currentDate;
+        } catch (e) {
+          return false;
+        }
+      });
+    }
+  }
+  
+  // Open the cancellation confirmation modal
+  openCancelModal(appointment: Appointment): void {
+    this.appointmentToCancel = appointment;
+    this.showCancelModal = true;
+    // Prevent background scrolling
+    document.body.classList.add('modal-open');
   }
 
-  fetchData(): void {
+  // Process the actual cancellation
+  confirmCancelAppointment(): void {
+    if (!this.appointmentToCancel) return;
+    
+    const appointment = this.appointmentToCancel;
     this.loading = true;
-
-    const patientId = 1;
+    this.error = null;
+    this.successMessage = null;
     
-    this.appointmentService.getAppointmentsByPatient(patientId).subscribe({
-      next: (appointments) => {
-        if (this.appointmentsType === 'upcoming') {
-          this.appointments = this.filterUpcomingAppointments(appointments);
+    const appointmentId = appointment.appointmentId;
+    
+    // Create payload 
+    const payload = {
+      patientUserId: null,  
+      status: 2  
+    };
+    
+    this.appointmentService.updateAppointment(appointmentId, payload)
+      .subscribe({
+        next: (result) => {
+          this.loading = false;
+          this.successMessage = 'Appointment cancelled successfully';
+          
+          // Remove the cancelled appointment from the list
+          this.appointments = this.appointments.filter(app => 
+            app.appointmentId !== appointmentId
+          );
+          
+          // Also update the _allAppointments list
+          this._allAppointments = this._allAppointments.filter(app => 
+            app.appointmentId !== appointmentId
+          );
+          
+          // Close the modal
+          this.closeCancelModal();
+        },
+        error: (err) => {
+          let errorMsg = 'Unknown error';
+          if (err.error && typeof err.error === 'string') {
+            errorMsg = err.error;
+          } else if (err.message) {
+            errorMsg = err.message;
+          }
+          
+          this.loading = false;
+          this.error = `Failed to cancel appointment: ${errorMsg}`;
+          
+          // Close the modal
+          this.closeCancelModal();
+        }
+      });
+  }
+
+  // Close the cancellation modal
+  closeCancelModal(): void {
+    this.showCancelModal = false;
+    this.appointmentToCancel = null;
+    document.body.classList.remove('modal-open');
+  }
+    
+  // View notes for an appointment
+  viewNotes(appointment: Appointment): void {
+    this.selectedAppointment = appointment;
+    
+    // Reset notes state
+    this.modalNotes = [];
+    this.modalNotesLoading = true;
+    this.modalNotesError = null;
+    
+    // Show the custom modal
+    this.showNotesModal = true;
+    
+    // body class to prevent scrolling
+    document.body.classList.add('modal-open');
+    this.store.dispatch(NoteActions.loadNotesByPatient({ 
+      patientUserId: this.patientUserId 
+    }));
+    
+    // Subscribe to notes from the store
+    const notesSub = this.store.select(NoteSelectors.selectAllNotes)
+      .subscribe(notes => {
+        // Filter notes for this specific appointment
+        if (notes && Array.isArray(notes)) {
+          const appointmentIdStr = String(appointment.appointmentId);
+          
+          this.modalNotes = notes.filter(note => {
+            const noteAppointmentId = note.appointmentId ? String(note.appointmentId) : '';
+            return noteAppointmentId === appointmentIdStr;
+          });
         } else {
-          this.appointments = this.filterPastAppointments(appointments);
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error fetching appointments:', err);
-        this.error = 'Failed to load appointments. Please try again later.';
-        this.loading = false;
-      },
-    });
-  }
-
-  // Filter upcoming appointments 
-  private filterUpcomingAppointments(appointments: Appointment[]): Appointment[] {
-    const today = new Date();
-    return appointments.filter(appointment => {
-      if (appointment.status === 'canceled') {
-        return false;
-      }
-      
-      const appointmentDate = new Date(appointment.date);
-      return appointmentDate > today || 
-        (appointmentDate.setHours(0,0,0,0) === today.setHours(0,0,0,0) && 
-         this.isTimeAfterNow(appointment.time));
-    });
-  }
-
-  // Filter past appointments 
-  private filterPastAppointments(appointments: Appointment[]): Appointment[] {
-    const today = new Date();
-    return appointments.filter(appointment => {
-      if (appointment.status === 'canceled') {
-        return true;
-      }
-      const appointmentDate = new Date(appointment.date);
-      return appointmentDate < today || 
-        (appointmentDate.setHours(0,0,0,0) === today.setHours(0,0,0,0) && 
-         !this.isTimeAfterNow(appointment.time));
-    });
-  }
-
-  // Check if a time string is after the current time
-  private isTimeAfterNow(timeString: string): boolean {
-    const now = new Date();
-    const [hours, minutes] = timeString.split(':').map(Number);
-    return hours > now.getHours() || (hours === now.getHours() && minutes > now.getMinutes());
-  }
-
-  getDoctorName(doctorId: number): string {
-    const doctorName = this.doctors.get(doctorId);
-    
-    if (doctorName) {
-      return doctorName;
-    }
-    let result = 'Unknown Doctor';
-    
-    // Get all doctors from store 
-    this.store.select(DoctorSelectors.selectAllDoctors).pipe(
-      tap(doctors => {
-        const doctor = doctors.find(d => d.id === doctorId);
-        if (doctor) {
-          // Found doctor, create name string
-          if (doctor.firstName && doctor.lastName) {
-            result = `Dr. ${doctor.firstName} ${doctor.lastName}`;
-            // Update the map for future use
-            this.doctors.set(doctorId, result);
-          } else if (doctor.name) {
-            result = doctor.name;
-            // Update the map for future use
-            this.doctors.set(doctorId, result);
-          }
-        }
-      })
-    ).subscribe();
-    
-    return result;
-  }
-
-cancelAppointment(appointmentId: number): void {
-  console.log(`Starting cancellation for appointment ${appointmentId}`);
-  this.loading = true;
-  this.errorMessage = null;
-  
-  this.appointmentService.cancelAppointment(appointmentId).subscribe({
-    next: (response) => {
-      console.log('Appointment canceled successfully, API response:', response);
-      this.loading = false;
-
-      this.fetchData();
-
-      this.loadAvailableAppointments(); 
-      // Show success message
-      this.successMessage = 'Appointment canceled successfully. The time slot is now available.';
-      console.log('Success message shown, will clear after 3 seconds');
-
-      setTimeout(() => {
-        this.successMessage = null;
-        console.log('Success message cleared');
-      }, 3000);
-    },
-    error: (error) => {
-      console.error('Error canceling appointment:', error);
-      this.loading = false;
-      this.errorMessage = error.message || 'Failed to cancel appointment. Please try again.';
-      console.log(`Error message shown to user: ${this.errorMessage}`);
-    }
-  });
-}
-viewNotes(appointmentId: number): void {
-  console.log('View notes clicked for appointment:', appointmentId);
-  
-  // Find appointment
-  const appointment = this.appointments.find(app => app.id === appointmentId);
-  if (!appointment) {
-    console.error(`Appointment with ID ${appointmentId} not found`);
-    return;
-  }
-  
-  // Set appointment details
-  this.selectedAppointmentId = appointmentId;
-  this.selectedAppointmentDoctor = this.getDoctorName(appointment.doctorId);
-  this.selectedAppointmentDate = appointment.date;
-  this.selectedAppointmentTime = appointment.time;
-  
-  // Reset states 
-  this.modalNotes = [];
-  this.modalNotesLoading = true;
-  this.modalNotesError = null;
-  
-  // Show modal 
-  this.openNotesModal();
-  
-  // load the notes
-  this.noteService.getNotesByAppointmentId(appointmentId).subscribe({
-    next: (notes) => {
-      console.log(`Modal: Got ${notes.length} notes for appointment ${appointmentId}:`, notes);
-      this.modalNotes = notes; 
-      this.modalNotesLoading = false;
-    },
-    error: (error) => {
-      console.error('Modal notes error:', error);
-      this.modalNotesError = 'Failed to load notes: ' + error.message;
-      this.modalNotesLoading = false;
-    }
-  });
-}
-
-private openNotesModal(): void {
-  console.log('Opening notes modal');
-  const modalElement = document.getElementById('notesModal');
-  if (modalElement) {
-    // Create a new Bootstrap modal instance
-    const modal = new (window as any).bootstrap.Modal(modalElement);
-    modal.show();
-  } else {
-    console.error('Notes modal element not found in DOM');
-  }
-}
-
-modalNotes: Note[] = [];
-modalNotesLoading: boolean = false;
-modalNotesError: string | null = null;
-
-closeModal(modalId: string): void {
-  const modalElement = document.getElementById(modalId);
-  if (modalElement) {
-    const bsModal = (window as any).bootstrap.Modal.getInstance(modalElement);
-    if (bsModal) {
-      bsModal.hide();
-    }
-  }
-}
-
-  loadAvailableAppointments(): void {
-    console.log('Dispatching action to load available appointments');
-    this.store.dispatch(AppointmentActions.loadAvailableAppointments());
-  }
-  rescheduleAppointment(appointmentId: number): void {
-    const appointment = this.appointments.find(app => app.id === appointmentId);
-    if (appointment) {
-      this.selectedAppointmentId = appointmentId;
-      this.selectedAppointmentDoctor = this.getDoctorName(appointment.doctorId);
-      this.selectedAppointmentDate = appointment.date;
-      this.selectedAppointmentTime = appointment.time;
-      
- 
-      const today = new Date();
-      this.newAppointmentDate = today.toISOString().split('T')[0]; // Today's date as default
-      this.newAppointmentTime = this.availableTimes[0]; // First available time
-      
-      // Reset status flags
-      this.rescheduleError = null;
-      this.rescheduleSuccess = false;
-      
-      // Open the modal using Bootstrap's modal API
-      const rescheduleModal = document.getElementById('rescheduleModal');
-      if (rescheduleModal) {
-        // @ts-ignore - Using Bootstrap's modal API
-        const bsModal = new bootstrap.Modal(rescheduleModal);
-        bsModal.show();
-      }
-    }
-  }
-
-  submitReschedule(): void {
-    if (!this.selectedAppointmentId || !this.newAppointmentDate || !this.newAppointmentTime) {
-      this.rescheduleError = 'Please select both date and time.';
-      return;
-    }
-    
-    this.rescheduleError = null;
-    
-    this.appointmentService.rescheduleAppointment(
-      this.selectedAppointmentId, 
-      this.newAppointmentDate, 
-      this.newAppointmentTime
-    ).subscribe({
-      next: (updatedAppointment) => {
-        const index = this.appointments.findIndex(app => app.id === this.selectedAppointmentId);
-        if (index !== -1) {
-          this.appointments[index].date = updatedAppointment.date;
-          this.appointments[index].time = updatedAppointment.time;
+          this.modalNotes = [];
         }
         
-        this.rescheduleSuccess = true;
-        
-        setTimeout(() => {
-          const rescheduleModal = document.getElementById('rescheduleModal');
-          if (rescheduleModal) {
-            // @ts-ignore - Using Bootstrap's modal API
-            const bsModal = bootstrap.Modal.getInstance(rescheduleModal);
-            bsModal?.hide();
-          }
-        }, 2000);
-      },
-      error: (err) => {
-        console.error('Error rescheduling appointment:', err);
-        this.rescheduleError = 'Failed to reschedule appointment. Please try again.';
+        this.modalNotesLoading = false;
+      });
+    
+    // Add subscriptions to be cleaned up
+    this.subscriptions.push(notesSub);
+  }
+
+  // Close the notes modal
+  closeNotesModal(): void {
+    this.showNotesModal = false;
+    document.body.classList.remove('modal-open');
+  }
+
+  // Format date for display
+  formatDate(dateStr: string | undefined): string {
+    if (!dateStr) return 'N/A';
+    
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString();
+    } catch (error) {
+      return 'Invalid date';
+    }
+  }
+
+  // Format date with time for display
+  formatDateTime(dateStr: string | undefined): string {
+    if (!dateStr) return 'N/A';
+    
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return dateStr;
+    }
+  }
+  
+  // Get doctor name from doctor ID
+  getDoctorName(doctorId: string | number | undefined): string {
+    if (!doctorId) {
+      return 'Unknown Doctor';
+    }
+    
+    const doctorIdStr = String(doctorId);
+    
+    // First check if we have the doctor in our map
+    const doctor = this.doctorMap.get(doctorIdStr);
+    if (doctor) {
+      if (doctor.firstName && doctor.lastName) {
+        return `Dr. ${doctor.firstName} ${doctor.lastName}`;
+      } else if (doctor.name) {
+        return doctor.name;
       }
-    });
+    }
+    // if the doctorId might be a GUID that was converted to a number
+    if (!isNaN(Number(doctorIdStr))) {
+      const numericId = Number(doctorIdStr);
+      
+      // Get all doctors and find by numeric ID
+      const doctors = Array.from(this.doctorMap.values());
+      const foundDoctor = doctors.find(d => d.id === numericId);
+      
+      if (foundDoctor) {
+        if (foundDoctor.firstName && foundDoctor.lastName) {
+          return `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`;
+        } else if (foundDoctor.name) {
+          return foundDoctor.name;
+        }
+      }
+    }
+    
+    // As a last resort, return a placeholder with the ID
+    return `Doctor ${doctorIdStr.substring(0, 8)}`;
   }
 }

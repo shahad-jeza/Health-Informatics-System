@@ -1,36 +1,23 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { DoctorState } from './doctor.state';
 
-// Create a feature selector to get the doctor slice of the state
+// Base selectors - used for accessing state
 export const selectDoctorState = createFeatureSelector<DoctorState>('doctor');
 
-// Select all doctors with null safety
+// Select all doctors - used in appointment components to get doctor names
 export const selectAllDoctors = createSelector(
   selectDoctorState,
   (state: DoctorState | null) => state?.doctors ?? []
 );
 
-export const selectDoctorById = (doctorId: number) => createSelector(
-  selectAllDoctors,
-  (doctors) => doctors.find(doctor => doctor.id === doctorId) || null
-);
-
+// Loading state - used for UI indicators
 export const selectDoctorsLoading = createSelector(
   selectDoctorState,
   (state: DoctorState | null) => state?.loading ?? false
 );
 
+// Error state - used for error handling
 export const selectDoctorsError = createSelector(
   selectDoctorState,
   (state: DoctorState | null) => state?.error ?? null
-);
-
-export const selectSelectedDoctor = createSelector(
-  selectDoctorState,
-  selectAllDoctors,
-  (state: DoctorState | null, doctors) => {
-    const selectedId = state?.selectedDoctorId;
-    if (selectedId == null) return null;
-    return doctors.find(doctor => doctor.id === selectedId) || null;
-  }
 );

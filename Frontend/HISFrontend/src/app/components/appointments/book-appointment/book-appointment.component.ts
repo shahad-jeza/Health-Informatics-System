@@ -1,11 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { AppointmentService } from '../../../services/appointments/appointment.service';
-import { DoctorService } from '../../../services/doctor/doctor.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { User } from '../../../models/user.model';
-import { Appointment } from '../../../models/appointment.model';
+import { Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
+import { Doctor } from '../../../store/doctor/doctor.state';
+import { Appointment, AppointmentStatus } from '../../../models/appointment.model';
+import { AppointmentService } from '../../../services/appointments/appointment.service';
+
+import * as DoctorActions from '../../../store/doctor/doctor.actions';
+import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 
 @Component({
   selector: 'app-book-appointment',
@@ -14,116 +18,170 @@ import { Appointment } from '../../../models/appointment.model';
   templateUrl: './book-appointment.component.html',
   styleUrls: ['./book-appointment.component.css']
 })
-export class BookAppointmentComponent implements OnInit {
+export class BookAppointmentComponent implements OnInit, OnDestroy {
+  // Form fields
+  selectedDoctorId: string = '';
+  appointmentDate: string = '';
+  appointmentTime: string = '';
   selectedAppointmentId: string = '';
-  appointmentOptions: { value: string, label: string }[] = [];
-  loading: boolean = false;
-  error: boolean = false;
   
+  // Data
+  availableAppointments: Appointment[] = [];
+  
+  // State observables
+  doctors$: Observable<Doctor[]>;
+  doctorsLoading$: Observable<boolean>;
+  doctorsError$: Observable<string | null>;
+  
+  // UI state
+  loading = false;
+  error: string | null = null;
+  success: string | null = null;
+  
+  // Subscription management
+  private subscriptions: Subscription[] = [];
+
   constructor(
-    private appointmentService: AppointmentService,
-    private doctorService: DoctorService
-  ) {}
-  
-  ngOnInit(): void {
-    this.loadAvailableAppointments();
+    private store: Store,
+    private appointmentService: AppointmentService
+  ) {
+    this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
+    this.doctorsLoading$ = this.store.select(DoctorSelectors.selectDoctorsLoading);
+    this.doctorsError$ = this.store.select(DoctorSelectors.selectDoctorsError);
+    
+
   }
   
+  ngOnInit(): void {
+    // Load doctors from store
+    this.store.dispatch(DoctorActions.loadDoctors()); 
+    
+    // Fetch available appointments
+    this.loadAvailableAppointments();
+    
+    // Handle doctor loading errors
+    const errorSub = this.doctorsError$.subscribe(error => {
+      if (error) {
+        this.error = `Failed to load doctors: ${error}`;
+      } else {
+        this.error = null;
+      }
+    });
+    
+    this.subscriptions.push(errorSub);
+  }
+  
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+  
+  // Load all available appointments
   loadAvailableAppointments(): void {
     this.loading = true;
-    this.error = false;
-    
-    // Use forkJoin to get both appointments and doctors in parallel
-    forkJoin({
-      appointments: this.appointmentService.getAvailableAppointments(),
-      doctors: this.doctorService.getAllDoctors()
-    }).subscribe({
-      next: ({ appointments, doctors }) => {
-
-        const doctorMap = new Map();
-        doctors.forEach(doctor => {
-          doctorMap.set(doctor.id, doctor);
-        });
+    this.error = null;
+  
+    this.appointmentService.getAllAppointments().subscribe({
+      next: (appointments) => {
+        // Filter for available appointments (with null patientUserId)
+        const availableAppointments = appointments.filter(a => !a.patientUserId);
         
-        this.appointmentOptions = appointments.map(appointment => {
-          const value = `${appointment.id}`;
-          
-          // Get doctor from map
-          const doctor = doctorMap.get(appointment.doctorId);
-          
-          let doctorName = 'Unknown Doctor';
-          if (doctor) {
-            if (doctor.firstName && doctor.lastName) {
-              doctorName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
-            } else if (doctor.name) {
-              const nameParts = doctor.name.replace(/^Dr\.\s+/, '').split(' ');
-              if (nameParts.length >= 2) {
-                doctorName = `Dr. ${nameParts[0]} ${nameParts.slice(1).join(' ')}`;
-              } else {
-                doctorName = doctor.name; 
-              }
-            } else {
-              doctorName = `Doctor (ID: ${doctor.id})`;
-            }
-
-            if (doctor.specialization) {
-              doctorName += ` (${doctor.specialization})`;
-            }
-          }
-          
-          const label = `${doctorName} - ${appointment.date} at ${appointment.time}`;
-          
-          return { value, label };
-        });
-        
+        this.availableAppointments = availableAppointments;
         this.loading = false;
+        
+        if (availableAppointments.length === 0) {
+          this.error = 'No available appointments found. Please check with your administrator.';
+        }
       },
-      error: (error) => {
-        console.error('Error loading data:', error);
-        this.error = true;
+      error: (err) => {
         this.loading = false;
+        this.error = 'Failed to load available appointments';
       }
     });
   }
-  
+
+  // Format appointment text for display
+  getFormattedAppointmentText(apt: Appointment): string {
+    if (!apt) return 'Invalid appointment';
+    
+    // Extract doctor name using doctorUserId
+    let doctorName = 'Unknown Doctor';
+    
+    // Format date from the ISO string
+    let dateStr = 'TBD';
+    let timeStr = 'TBD';
+    
+    if (apt.date) {
+      const dateObj = new Date(apt.date);
+      dateStr = dateObj.toLocaleDateString();
+      
+      // Extract time from the ISO date string 
+      if (apt.time) {
+        timeStr = apt.time;
+      } else {
+        timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      }
+    }
+    
+    // Find doctor name from the store
+    const doctorId = apt.doctorUserId;
+    if (doctorId) {
+      this.doctors$.pipe(
+        take(1) // Take just once to avoid memory leaks
+      ).subscribe(doctors => {
+        const doctor = doctors.find(d => d.userId === doctorId);
+        if (doctor) {
+          doctorName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
+        }
+      });
+    }
+    
+    return `${doctorName} - ${dateStr} at ${timeStr}`;
+  }
+    
+  // Book the selected appointment
   bookAppointment(): void {
     if (!this.selectedAppointmentId) {
-      alert('Please select an appointment slot');
+      this.error = 'Please select an appointment';
       return;
     }
     
-    const appointmentId = parseInt(this.selectedAppointmentId);
-    console.log('Booking appointment ID:', appointmentId);
+    this.loading = true;
+    this.error = null;
+    this.success = null;
     
-
-    this.appointmentService.bookAppointment(appointmentId, 1) // 1 is mock patient ID
+    // Patient user ID (mock)
+    const patientUserId = "33333333-3333-3333-3333-333333333333";
+    
+    // Payload with the required fields
+    const payload = {
+      PatientUserId: patientUserId,
+      Status: 1
+    };
+    
+    this.appointmentService.updateAppointment(this.selectedAppointmentId, payload)
       .subscribe({
         next: (result) => {
-          console.log('Appointment booked successfully:', result);
-          alert('Appointment booked successfully!');
+          this.loading = false;
+          this.success = 'Appointment booked successfully!';
+          
+          // Remove the booked appointment from the list
+          this.availableAppointments = this.availableAppointments.filter(
+            apt => apt.appointmentId !== this.selectedAppointmentId
+          );
           this.selectedAppointmentId = '';
-          // Reload available appointments
-          this.loadAvailableAppointments();
         },
-        error: (error) => {
-          console.error('Error booking appointment:', error);
-          console.error('Error details:', error.error);
-          
-          let errorMsg = 'Failed to book appointment. ';
-          
-          if (error.status === 404) {
-            errorMsg += 'The appointment was not found.';
-          } else if (error.status === 400) {
-            errorMsg += `Invalid appointment data: ${JSON.stringify(error.error)}`;
-          } else if (error.status === 403) {
-            errorMsg += 'You do not have permission to book this appointment.';
-          } else if (error.status === 409) {
-            errorMsg += 'This appointment has already been booked.';
-          } else {
-            errorMsg += 'Please try again later.';
+        error: (err) => {
+          // Error message handling
+          let errorMsg = 'Unknown error';
+          if (err.error && typeof err.error === 'string') {
+            errorMsg = err.error;
+          } else if (err.message) {
+            errorMsg = err.message;
           }
           
-          alert(errorMsg);
+          this.loading = false;
+          this.error = `Failed to book appointment: ${errorMsg}`;
         }
       });
   }

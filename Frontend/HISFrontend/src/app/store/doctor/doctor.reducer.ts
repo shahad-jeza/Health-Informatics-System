@@ -6,7 +6,6 @@ export const initialDoctorState: DoctorState = {
   doctors: [], 
   loading: false,
   error: null,
-  selectedDoctorId: null
 };
 
 export const doctorReducer = createReducer(
@@ -28,10 +27,7 @@ export const doctorReducer = createReducer(
     ...state,
     error,
     loading: false
-  })),
-  
-  on(DoctorActions.selectDoctor, (state, { id }) => ({
-    ...state,
-    selectedDoctorId: id
   }))
+  
+
 );

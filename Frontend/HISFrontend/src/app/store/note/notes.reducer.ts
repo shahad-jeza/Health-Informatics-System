@@ -4,16 +4,14 @@ import { NotesState } from './notes.state';
 
 export const initialNotesState: NotesState = {
   notes: [],
-  notesByAppointment: {},
   loading: false,
-  error: null,
-  selectedNoteId: null
+  error: null
 };
 
 export const notesReducer = createReducer(
   initialNotesState,
   
-  // Load notes by patient
+  // Load notes by patient 
   on(NoteActions.loadNotesByPatient, state => ({
     ...state,
     loading: true,
@@ -32,58 +30,7 @@ export const notesReducer = createReducer(
     loading: false
   })),
   
-  // Add note
-  on(NoteActions.addNote, state => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  
-  on(NoteActions.addNoteSuccess, (state, { note }) => ({
-    ...state,
-    notes: [...state.notes, note],
-    loading: false
-  })),
-  
-  on(NoteActions.addNoteFailure, (state, { error }) => ({
-    ...state,
-    error,
-    loading: false
-  })),
-  
-  // Load notes by appointment
-  on(NoteActions.loadNotesByAppointment, state => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  
-  on(NoteActions.loadNotesByAppointmentSuccess, (state, { notes, appointmentId }) => ({
-    ...state,
-    notesByAppointment: {
-      ...state.notesByAppointment,
-      [appointmentId]: notes
-    },
-    loading: false
-  })),
-  
-  on(NoteActions.loadNotesByAppointmentFailure, (state, { error }) => ({
-    ...state,
-    error,
-    loading: false
-  })),
-  
-  // UI actions
-  on(NoteActions.selectNote, (state, { noteId }) => ({
-    ...state,
-    selectedNoteId: noteId
-  })),
-  
-  on(NoteActions.clearSelectedNote, state => ({
-    ...state,
-    selectedNoteId: null
-  })),
-  
+  // Clear errors - utility action
   on(NoteActions.clearNoteErrors, state => ({
     ...state,
     error: null

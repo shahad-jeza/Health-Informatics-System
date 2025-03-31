@@ -1,9 +1,15 @@
+export enum AppointmentStatus {
+  Created = 'Created',
+  Confirmed = 'Confirmed',
+  Cancelled = 'Cancelled'
+}
+
 export interface Appointment {
-  id: number;
-  appointmentId: string;
-  patientId: number | null;
-  doctorId: number;
-  date: string;
-  time: string;
-  status: string;
+  id: string;  
+  appointmentId: string;     
+  doctorUserId: string;      
+  patientUserId: string;
+  date: string; 
+  time: string; 
+  status: AppointmentStatus;
 }

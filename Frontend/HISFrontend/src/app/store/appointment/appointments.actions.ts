@@ -1,112 +1,66 @@
 import { createAction, props } from '@ngrx/store';
-import { Appointment } from '../../models/appointment.model';
-import { User } from '../../models/user.model';
-// Load appointments
-export const loadAppointments = createAction(
-  '[Appointments] Load Appointments',
-  props<{ appointmentType: 'past' | 'upcoming' }>()
-);
+import { Appointment, AppointmentStatus } from '../../models/appointment.model';
 
-export const loadAppointmentsSuccess = createAction(
-  '[Appointments] Load Appointments Success',
-  props<{ appointmentType: 'past' | 'upcoming'; appointments: Appointment[] }>()
-);
-
-export const loadAppointmentsFailure = createAction(
-  '[Appointments] Load Appointments Failure',
-  props<{ error: string }>()
-);
-
-// Cancel appointment
-export const cancelAppointment = createAction(
-  '[Appointments] Cancel Appointment',
-  props<{ appointmentId: number }>()
-);
-
-export const cancelAppointmentSuccess = createAction(
-  '[Appointments] Cancel Appointment Success',
-  props<{ appointmentId: number }>()
-);
-
-export const cancelAppointmentFailure = createAction(
-  '[Appointments] Cancel Appointment Failure',
-  props<{ error: string }>()
-);
-
-// Reschedule appointment
-export const rescheduleAppointment = createAction(
-  '[Appointments] Reschedule Appointment',
-  props<{ appointmentId: number; date: string; time: string }>()
-);
-
-export const rescheduleAppointmentSuccess = createAction(
-  '[Appointments] Reschedule Appointment Success',
-  props<{ appointment: Appointment }>()
-);
-
-export const rescheduleAppointmentFailure = createAction(
-  '[Appointments] Reschedule Appointment Failure',
-  props<{ error: string }>()
-);
-
-// Load available appointment slots
-export const loadAvailableSlots = createAction(
-  '[Appointments] Load Available Slots'
-);
-
-export const loadAvailableSlotsSuccess = createAction(
-  '[Appointment] Load Available Slots Success',
-  props<{ doctors: User[] }>() 
-);
-
-export const loadAvailableSlotsFailure = createAction(
-  '[Appointments] Load Available Slots Failure',
-  props<{ error: string }>()
-);
-
-// Book appointment
-export const bookAppointment = createAction(
-  '[Appointments] Book Appointment',
-  props<{ appointmentId: number; patientId: number }>()
-);
-
-export const bookAppointmentSuccess = createAction(
-  '[Appointments] Book Appointment Success',
-  props<{ appointment: Appointment }>()
-);
-
-export const bookAppointmentFailure = createAction(
-  '[Appointments] Book Appointment Failure',
-  props<{ error: string }>()
-);
-
-// Select appointment
-export const selectAppointment = createAction(
-  '[Appointments] Select Appointment',
-  props<{ appointmentId: number }>()
-);
-
-// Clear booking state
-export const resetBookingState = createAction(
-  '[Appointments] Reset Booking State'
-);
-
+// Create Appointment Actions
 export const createAppointment = createAction(
-  '[Appointment] Create Appointment',
+  '[Appointments] Create Appointment',
+  props<{ appointment: Partial<Appointment> }>()
+);
+
+export const createAppointmentSuccess = createAction(
+  '[Appointments] Create Appointment Success',
   props<{ appointment: Appointment }>()
 );
 
-
-export const loadAvailableAppointments = createAction(
-  '[Appointments] Load Available Appointments'
+export const createAppointmentFailure = createAction(
+  '[Appointments] Create Appointment Failure',
+  props<{ error: string }>()
 );
 
-export const loadAvailableAppointmentsSuccess = createAction(
-  '[Appointments] Load Available Appointments Success',
+// Update Appointment Status Actions
+export const updateAppointmentStatus = createAction(
+  '[Appointment] Update Appointment Status',
+  props<{ appointmentId: string; status: AppointmentStatus }>()
+);
+
+export const updateAppointmentStatusSuccess = createAction(
+  '[Appointments] Update Appointment Status Success',
+  props<{ appointment: Appointment }>()
+);
+
+export const updateAppointmentStatusFailure = createAction(
+  '[Appointments] Update Appointment Status Failure',
+  props<{ error: string }>()
+);
+
+// Load Doctor Appointments Actions
+export const loadDoctorAppointments = createAction(
+  '[Appointments] Load Doctor Appointments',
+  props<{ doctorId: number }>()
+);
+
+export const loadDoctorAppointmentsSuccess = createAction(
+  '[Appointments] Load Doctor Appointments Success',
   props<{ appointments: Appointment[] }>()
 );
 
-export const loadAvailableAppointmentsFailure = createAction(
-  '[Appointments] Load Available Appointments Failure',
-  props<{ error: any }>()
+export const loadDoctorAppointmentsFailure = createAction(
+  '[Appointments] Load Doctor Appointments Failure',
+  props<{ error: string }>()
+);
+
+// Get Patient Appointments Actions
+export const getAppointmentsByPatient = createAction(
+  '[Appointments] Get Appointments By Patient',
+  props<{ patientId: string }>()
+);
+
+export const getAppointmentsByPatientSuccess = createAction(
+  '[Appointments] Get Appointments By Patient Success',
+  props<{ appointments: Appointment[] }>()
+);
+
+export const getAppointmentsByPatientFailure = createAction(
+  '[Appointments] Get Appointments By Patient Failure',
+  props<{ error: string }>()
 );

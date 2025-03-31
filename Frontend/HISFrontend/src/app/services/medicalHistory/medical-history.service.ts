@@ -1,31 +1,32 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface MedicalRecord {
-  id: number;
-  historyID: string;
-  diagnosis: string;
-  allergies: string;
-  medicines: string;
-  patientId: number;
-}
+import { MedicalRecord } from '../../models/medical-record.model';
+import { ApiConfigService } from '../api-config/api-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MedicalHistoryService {
-  private apiUrl = 'http://localhost:5223/api';
+  constructor(
+    private http: HttpClient,
+    private apiConfig: ApiConfigService
+  ) { }
 
-  constructor(private http: HttpClient) { }
-
-  // Get patient medical history - matches GET /api/history/patient/{patientId}
-  getPatientHistory(patientId: number): Observable<MedicalRecord[]> {
-    return this.http.get<MedicalRecord[]>(`${this.apiUrl}/history/patient/${patientId}`);
+  // Get patient medical history - GET /api/MedicalHistory/{patientUserId}
+  getPatientHistory(patientUserId: string): Observable<MedicalRecord> {
+    return this.http.get<MedicalRecord>(
+      this.apiConfig.getEndpoint(`MedicalHistory/${patientUserId}`),
+      this.apiConfig.httpOptions
+    );
   }
 
-  // Update patient medical history - matches PUT /api/history/patient/{patientId}
-  updatePatientHistory(patientId: number, record: MedicalRecord): Observable<MedicalRecord> {
-    return this.http.put<MedicalRecord>(`${this.apiUrl}/history/patient/${patientId}`, record);
+  // Update patient medical history -  PUT /api/MedicalHistory/{patientUserId}
+  updatePatientHistory(patientUserId: string, record: MedicalRecord): Observable<MedicalRecord> {
+    return this.http.put<MedicalRecord>(
+      this.apiConfig.getEndpoint(`MedicalHistory/${patientUserId}`),
+      record,
+      this.apiConfig.httpOptions
+    );
   }
 }
