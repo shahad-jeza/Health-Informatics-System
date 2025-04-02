@@ -43,7 +43,23 @@ export class AppointmentEffects {
       );
     })
   ));
-
+  
+  loadDoctorAppointments$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(AppointmentActions.loadDoctorAppointments),
+      switchMap(action => {
+        // Always use the doctorId as a string (which should be a GUID)
+        const doctorGuid = String(action.doctorId);
+        console.log(`Loading appointments for doctor GUID: ${doctorGuid}`);
+        
+        return this.appointmentService.getDoctorAppointments(doctorGuid)
+          .pipe(
+            map(appointments => AppointmentActions.loadDoctorAppointmentsSuccess({ appointments })),
+            catchError(error => of(AppointmentActions.loadDoctorAppointmentsFailure({ error: error.message })))
+          );
+      })
+    );
+  });
   // Get appointments by patient 
   getAppointmentsByPatient$ = createEffect(() => this.actions$.pipe(
     ofType(AppointmentActions.getAppointmentsByPatient),

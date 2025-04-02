@@ -30,6 +30,24 @@ export class AppointmentService {
     );
   }
 
+  // Get appointments for a specific doctor
+getDoctorAppointments(doctorId: string): Observable<Appointment[]> {
+  console.log(`[AppointmentService] Fetching appointments for doctor: ${doctorId}`);
+  
+  return this.http.get<Appointment[]>(
+    this.apiConfig.getEndpoint(`Appointment/doctor/${doctorId}`),
+    this.apiConfig.httpOptions
+  ).pipe(
+    map(appointments => {
+      console.log(`[AppointmentService] Received ${appointments.length} appointments for doctor ${doctorId}`);
+      return appointments;
+    }),
+    catchError(error => {
+      console.error(`[AppointmentService] Error fetching doctor appointments: ${error.message}`);
+      return throwError(() => new Error(`Failed to fetch doctor appointments: ${error.message}`));
+    })
+  );
+}
   // Create a new appointment
   createAppointment(appointment: any): Observable<Appointment> {
     // Step 1: Create the appointment

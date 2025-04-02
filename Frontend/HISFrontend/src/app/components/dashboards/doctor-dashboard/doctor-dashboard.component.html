@@ -1,0 +1,140 @@
+<div class="container-fluid mt-4">
+  <div class="row justify-content-center">
+    <div class="col-11 col-xl-10">
+      <div class="dashboard-wrapper mx-md-4">
+
+        
+        <!-- Appointments Row -->
+        <div class="row d-flex equal-height-row">
+          <!-- Upcoming Appointments -->
+          <div class="col-md-6 mb-4 d-flex">
+            <app-doctor-appointments
+              class="w-100"
+              [title]="'Upcoming Appointments'"
+              [appointmentType]="'upcoming'"
+              [doctorId]="doctorId"
+              [refreshTimestamp]="refreshTimestamp">
+            </app-doctor-appointments>
+          </div>
+
+          <!-- Past Appointments -->
+          <div class="col-md-6 mb-4 d-flex">
+            <app-doctor-appointments
+              class="w-100"
+              [title]="'Past Appointments'"
+              [appointmentType]="'past'"
+              [doctorId]="doctorId"
+              [refreshTimestamp]="refreshTimestamp">
+            </app-doctor-appointments>
+          </div>
+        </div>
+
+        <!-- Patient Summary and Create Notes Row -->
+        <div class="row mt-5 equal-height-row">
+          <!-- Patient Summary -->
+          <div class="col-md-6 mb-4 d-flex">
+            <div class="card mt-5 mb-5 border-0 w-100" style="box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 6px 10px -3px rgba(0,0,0,0.15);border-radius: 0;">
+              <div class="card-body">
+                <h3 class="mb-4">Patient Summary</h3>
+                
+                <!-- Loading indicator -->
+                <div *ngIf="loading && !patientOptions.length" class="text-center my-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading patients...</span>
+                  </div>
+                  <p class="mt-2">Loading patients...</p>
+                </div>
+                
+                <!-- Patient select -->
+                <div class="mb-4" *ngIf="patientOptions.length > 0">
+                  <label for="patientSummarySelect" class="form-label">Select Patient</label>
+                  <select class="form-select" id="patientSummarySelect" [(ngModel)]="selectedPatientId" (change)="onPatientSelected()">
+                    <option [ngValue]="null">Choose a patient...</option>
+                    <option *ngFor="let patient of patientOptions" [value]="patient.userId">
+                      {{ patient.name }}
+                    </option>
+                  </select>
+                </div>
+                
+                <!-- Patient summary content -->
+                <div *ngIf="!selectedPatientId" class="text-center my-5">
+                  <p class="text-muted">Select a patient to view their summary</p>
+                </div>
+                
+                <app-patient-summary 
+                  *ngIf="selectedPatientId"
+                  [patientUserId]="selectedPatientId">
+                </app-patient-summary>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Create Notes -->
+          <div class="col-md-6 mb-4 d-flex">
+            <div class="card mt-5 mb-5 border-0 w-100" style="box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 6px 10px -3px rgba(0,0,0,0.15);border-radius: 0;">
+              <div class="card-body">
+                <h3 class="mb-4">Create Notes</h3>
+                
+                <!-- Error message -->
+                <div *ngIf="error" class="alert alert-danger">
+                  {{ error }}
+                </div>
+                
+                <!-- Success message -->
+                <div *ngIf="successMessage" class="alert alert-success">
+                  {{ successMessage }}
+                </div>
+                
+                <!-- Loading indicator -->
+                <div *ngIf="loading && !appointmentOptions.length" class="text-center my-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading appointments...</span>
+                  </div>
+                  <p class="mt-2">Loading appointments...</p>
+                </div>
+                
+                <!-- Appointment select -->
+                <div class="mb-3" *ngIf="appointmentOptions.length > 0">
+                  <label for="appointmentSelect" class="form-label">Select Appointment</label>
+                  <select class="form-select" id="appointmentSelect" [(ngModel)]="selectedAppointmentId" (change)="onAppointmentSelected()">
+                    <option [ngValue]="null">Choose an appointment...</option>
+                    <option *ngFor="let appt of appointmentOptions" [value]="appt.appointmentId">
+                      {{ appt.patientName }} - {{ formatDate(appt.date) }}
+                    </option>
+                  </select>
+                </div>
+                
+                <!-- Notes textarea -->
+                <div class="mb-3">
+                  <label for="noteText" class="form-label">Note</label>
+                  <textarea class="form-control" id="noteText" rows="5" placeholder="Enter your medical notes here..." 
+                    [(ngModel)]="noteText" [disabled]="!selectedAppointmentId"></textarea>
+                </div>
+                
+                <!-- Submit button -->
+              <div class="d-flex justify-content-center note-button-container">
+                <button class="btn btn-notes px-4 py-2" 
+                  [disabled]="!selectedAppointmentId || !noteText || loading"
+                  (click)="saveNote()">
+                  <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                  Save Note
+                </button>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logout button -->
+        <div class="row mt-4 mb-5 justify-content-center">
+          <div class="col-auto">
+            <button class="btn btn-outline-danger bg-white px-4 py-2 fw-semibold" (click)="logout()">
+              Logout
+            </button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>

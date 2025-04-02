@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription, of } from 'rxjs';
@@ -25,8 +25,8 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
   AppointmentStatus = AppointmentStatus;
   
   // Mock patient ID 
-  patientUserId = '33333333-3333-3333-3333-333333333333'; 
-  
+  @Input() patientUserId = '33333333-3333-3333-3333-333333333333';
+  @Input() refreshTimestamp?: number;
   // Store observables
   notes$: Observable<Note[]>;
   doctors$: Observable<Doctor[]>;
@@ -76,7 +76,23 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    // Check if patientUserId changed or if refreshTimestamp changed
+    if (
+      (changes['patientUserId'] && !changes['patientUserId'].firstChange) || 
+      (changes['refreshTimestamp'] && !changes['refreshTimestamp'].firstChange)
+    ) {
+      // Reload the patient data
+      this.loadPatientData();
+    }
+  }
   // Data Loading Methods
+
+  // Reload patient data
+  loadPatientData(): void {
+    this.loadMedicalHistory();
+    this.loadPatientAppointments();
+  }
   
   loadData(): void {
     // Load doctors from store

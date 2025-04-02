@@ -36,7 +36,7 @@ export const updateAppointmentStatusFailure = createAction(
 // Load Doctor Appointments Actions
 export const loadDoctorAppointments = createAction(
   '[Appointments] Load Doctor Appointments',
-  props<{ doctorId: number }>()
+  props<{ doctorId: string | number }>()
 );
 
 export const loadDoctorAppointmentsSuccess = createAction(
