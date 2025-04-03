@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HISBackend.Controllers
 {
@@ -24,7 +25,9 @@ namespace HISBackend.Controllers
         /// <summary>
         /// Gets summary of all doctors and patients
         /// </summary>
+
         [HttpGet("summary")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AdminSummaryDto>> GetSummary()
         {
             var summary = new AdminSummaryDto
@@ -42,7 +45,7 @@ namespace HISBackend.Controllers
                     })
                     .AsNoTracking()
                     .ToListAsync(),
-                
+
                 Patients = await _context.Users
                     .Where(u => u.Role == RoleType.Patient)
                     .Select(u => new PatientDto  // Changed to PatientDto
@@ -63,7 +66,10 @@ namespace HISBackend.Controllers
         /// <summary>
         /// Gets system statistics
         /// </summary>
+
+
         [HttpGet("statistics")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AdminStatisticsDto>> GetStatistics()
         {
             var today = DateTime.Today;
@@ -74,16 +80,16 @@ namespace HISBackend.Controllers
             {
                 TotalDoctors = await _context.Users
                     .CountAsync(u => u.Role == RoleType.Doctor),
-                
+
                 TotalPatients = await _context.Users
                     .CountAsync(u => u.Role == RoleType.Patient),
-                
+
                 TodayAppointments = await _context.Appointments
                     .CountAsync(a => a.Date.Date == today),
-                
+
                 WeeklyAppointments = await _context.Appointments
                     .CountAsync(a => a.Date >= startOfWeek && a.Date < endOfWeek),
-                
+
                 AppointmentStatusStats = await _context.Appointments
                     .GroupBy(a => a.Status)
                     .Select(g => new StatusStatDto
@@ -92,7 +98,7 @@ namespace HISBackend.Controllers
                         Count = g.Count()
                     })
                     .ToListAsync(),
-                
+
                 PopularSpecialties = await _context.Users
                     .Where(u => u.Role == RoleType.Doctor && u.Specialty != null)
                     .GroupBy(u => u.Specialty)

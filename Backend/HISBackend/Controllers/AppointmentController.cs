@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HISBackend.Controllers
 {
@@ -88,6 +89,7 @@ namespace HISBackend.Controllers
 
         // POST: api/appointment
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AppointmentDto>> CreateAppointment([FromBody] AppointmentCreateDto createDto)
         {
             if (!ModelState.IsValid)
@@ -98,7 +100,7 @@ namespace HISBackend.Controllers
             // Find doctor by UserId (GUID)
             var doctor = await _context.Users
                 .FirstOrDefaultAsync(u => u.UserId == createDto.DoctorUserId && u.Role == RoleType.Doctor);
-            
+
             if (doctor == null)
             {
                 return BadRequest("Doctor does not exist");
@@ -116,7 +118,7 @@ namespace HISBackend.Controllers
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCreatedAppointments), 
+            return CreatedAtAction(nameof(GetCreatedAppointments),
                 new AppointmentDto
                 {
                     AppointmentId = appointment.AppointmentId,
@@ -144,21 +146,21 @@ namespace HISBackend.Controllers
                 case AppointmentStatus.Confirmed when updateDto.PatientUserId.HasValue:
                     var patient = await _context.Users
                         .FirstOrDefaultAsync(u => u.UserId == updateDto.PatientUserId && u.Role == RoleType.Patient);
-                    
+
                     if (patient == null)
                     {
                         return BadRequest("Patient not found");
                     }
-                    
+
                     appointment.PatientId = patient.Id;
                     appointment.Status = AppointmentStatus.Confirmed;
                     break;
-                
+
                 case AppointmentStatus.Cancelled:
                     appointment.Status = AppointmentStatus.Cancelled;
                     appointment.PatientId = null;
                     break;
-                
+
                 default:
                     return BadRequest("Invalid update operation");
             }
