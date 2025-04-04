@@ -5,10 +5,8 @@ namespace HISBackend.Data
 {
     public class MyAppDbContext : DbContext
     {
-        // Add this constructor (only change needed)
         public MyAppDbContext(DbContextOptions<MyAppDbContext> options) : base(options) { }
 
-        // Keep ALL your existing DbSets and configurations below
         public DbSet<User> Users { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<MedicalHistory> MedicalHistories { get; set; }
@@ -81,11 +79,17 @@ namespace HISBackend.Data
 
             // Seed Users (Doctors & Patients)
             modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, UserId = Guid.Parse("11111111-1111-1111-1111-111111111111"), Email = "doctor1@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("hashedpassword1"), FirstName = "John", LastName = "Doe", Role = RoleType.Doctor, Specialty = SpecialtyType.General },
-                new User { Id = 2, UserId = Guid.Parse("22222222-2222-2222-2222-222222222222"), Email = "doctor2@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("hashedpassword2"), FirstName = "Jane", LastName = "Smith", Role = RoleType.Doctor, Specialty = SpecialtyType.Dermatolgy },
-                new User { Id = 3, UserId = Guid.Parse("33333333-3333-3333-3333-333333333333"), Email = "patient1@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("hashedpassword3"), FirstName = "Alice", LastName = "Brown", Role = RoleType.Patient },
-                new User { Id = 4, UserId = Guid.Parse("44444444-4444-4444-4444-444444444444"), Email = "patient2@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("hashedpassword4"), FirstName = "Bob", LastName = "White", Role = RoleType.Patient },
-                new User { Id = 5, UserId = Guid.Parse("55555555-5555-5555-5555-555555555555"), Email = "admin@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("hashedpassword5"), FirstName = "Razan", LastName = "Alatawi", Role = RoleType.Admin }
+                new User { Id = 1, UserId = Guid.Parse("11111111-1111-1111-1111-111111111111"), Email = "doctor1@gmail.com", PasswordHash = "$2a$11$sCYEzy1GbvTU/r7N2.GSOezCKjwdqbPDVP.aGydVsfqWrY7YGIe56", FirstName = "John", LastName = "Doe", Role = RoleType.Doctor, Specialty = SpecialtyType.General },
+                new User { Id = 2, UserId = Guid.Parse("22222222-2222-2222-2222-222222222222"), Email = "doctor2@gmail.com", PasswordHash = "$2a$11$0oXRLt4lkiQa1UuO3kNeWucoWZcQTobSNyvOe8eM/YrbJq2M40gZ6", FirstName = "Jane", LastName = "Smith", Role = RoleType.Doctor, Specialty = SpecialtyType.Dermatolgy },
+                new User { Id = 3, UserId = Guid.Parse("33333333-3333-3333-3333-333333333333"), Email = "patient1@gmail.com", PasswordHash = "$2a$11$UvzWUMWnCNotNCUIpr0D4eZXFCyitPK5zM0D1dmY1zpOfsRx41a5y", FirstName = "Alice", LastName = "Brown", Role = RoleType.Patient },
+                new User { Id = 4, UserId = Guid.Parse("44444444-4444-4444-4444-444444444444"), Email = "patient2@gmail.com", PasswordHash = "$2a$11$bMFcNFc2ecmvx4js.ESYle.CfD/h0TP5Rkj67GnvjL3SYe2GWMwjC", FirstName = "Bob", LastName = "White", Role = RoleType.Patient },
+                new User { Id = 5, UserId = Guid.Parse("55555555-5555-5555-5555-555555555555"), Email = "admin@gmail.com", PasswordHash = "$2a$11$AGvI3U5b6kxDgRH5Y952NedIWMuBMknT.kMpg38yXwzkalITM0JrW", FirstName = "Razan", LastName = "Alatawi", Role = RoleType.Admin },
+                new User { Id = 6, UserId = Guid.Parse("66666666-6666-6666-6666-666666666666"), Email = "cardio1@gmail.com", PasswordHash = "$2a$11$V8Blh3mxsi96H6.rl4pjT.du4mGkXRnGiiDTKl0Rs7njAQP8Z26ym", FirstName = "Michael", LastName = "Johnson", Role = RoleType.Doctor, Specialty = SpecialtyType.Dentisity },
+                new User { Id = 7, UserId = Guid.Parse("77777777-7777-7777-7777-777777777777"), Email = "cardio2@gmail.com", PasswordHash = "$2a$11$yyCV95KpctaynF63hkk6r.uLt9PeR2Phk..b03UlC69lJvwxc3GBC", FirstName = "Lisa", LastName = "Chen", Role = RoleType.Doctor, Specialty = SpecialtyType.Dentisity },
+                new User { Id = 8, UserId = Guid.Parse("88888888-8888-8888-8888-888888888888"), Email = "pedia1@gmail.com", PasswordHash = "$2a$11$SuwmMY7Q4mTn0lJJfCS2veC7NC5i/r39oLTmbcfiisePy0ALg9XGG", FirstName = "Emily", LastName = "Davis", Role = RoleType.Doctor, Specialty = SpecialtyType.Neurology },
+                new User { Id = 9, UserId = Guid.Parse("99999999-9999-9999-9999-999999999999"), Email = "pedia2@gmail.com", PasswordHash = "$2a$11$RMHMugTnrb1aJLwZsAaXk.e8ksoOK0Hv9daZVivLpbdv5mk93yJCy", FirstName = "James", LastName = "Wilson", Role = RoleType.Doctor, Specialty = SpecialtyType.Dermatolgy },
+                new User { Id = 10, UserId = Guid.Parse("AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"), Email = "neuro1@gmail.com", PasswordHash = "$2a$11$FlZNuUcfPhOrlRcRTl0na.ChXfgeW0pFTzweoi1yY0obTQtEt3bOS", FirstName = "Sarah", LastName = "Williams", Role = RoleType.Doctor, Specialty = SpecialtyType.Neurology },
+                new User { Id = 11, UserId = Guid.Parse("BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"), Email = "ortho1@gmail.com", PasswordHash = "$2a$11$gfUOO5AM0MbQhi616H9ehu0Y0iEYWK/oDk8/7nqFDyZtGKUuSCpUa", FirstName = "Robert", LastName = "Brown", Role = RoleType.Doctor, Specialty = SpecialtyType.Neurology }
             );
 
 

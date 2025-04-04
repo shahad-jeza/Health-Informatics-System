@@ -86,7 +86,7 @@ namespace HISBackend.Controllers
             {
                 NoteId = Guid.NewGuid(),
                 AppointmentId = appointment.Id,
-                MedicalHistoryId = medicalHistory.Id, // Now using the actual ID
+                MedicalHistoryId = medicalHistory.Id, 
                 NoteText = createDto.NoteText
             };
 
