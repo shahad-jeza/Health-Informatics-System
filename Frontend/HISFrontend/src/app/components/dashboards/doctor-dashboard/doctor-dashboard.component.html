@@ -70,20 +70,16 @@
                 </div>
                 
                 <!-- Patient Summary Component -->
-                <div *ngIf="selectedPatientId" class="patient-summary-container">
-                  <app-patient-summary 
-                    [patientUserId]="selectedPatientId">
+                <div *ngIf="selectedPatientId" class="patient-summary-container position-relative">
+                  <!-- Edit button  -->
+                  <button class="btn custom-edit-btn position-absolute"
+                          style="top: 10px; right: 10px; z-index: 10;"
+                          (click)="editPatientMedicalHistory()">Edit</button>
+                          
+                  <app-patient-summary [patientUserId]="selectedPatientId">
                   </app-patient-summary>
                 </div>
                 
-                <!-- Edit Button -->
-                <div *ngIf="selectedPatientId" class="d-flex justify-content-center mt-3">
-                  <button
-                    class="btn custom-edit-btn"
-                    (click)="editPatientMedicalHistory()">
-                    Edit
-                  </button>
-                </div>
               </div>
             </div>
           </div>
