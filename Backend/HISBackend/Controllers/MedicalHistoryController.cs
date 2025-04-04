@@ -5,6 +5,7 @@ using HISBackend.DTOs;
 using HISBackend.Models;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HISBackend.Controllers
 {
@@ -24,6 +25,7 @@ namespace HISBackend.Controllers
         /// </summary>
         /// <param name="patientUserId">GUID of the patient (User.UserId)</param>
         [HttpGet("{patientUserId}")]
+        [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<MedicalHistoryDto>> GetMedicalHistory(Guid patientUserId)
         {
             var medicalHistory = await _context.MedicalHistories
@@ -52,6 +54,7 @@ namespace HISBackend.Controllers
         /// </summary>
         /// <param name="patientUserId">GUID of the patient (User.UserId)</param>
         [HttpPut("{patientUserId}")]
+        [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> UpdateMedicalHistory(Guid patientUserId, [FromBody] MedicalHistoryUpdateDto updateDto)
         {
             if (!ModelState.IsValid)

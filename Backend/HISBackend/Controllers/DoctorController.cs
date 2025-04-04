@@ -6,6 +6,7 @@ using HISBackend.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HISBackend.Controllers
 {
@@ -24,6 +25,7 @@ namespace HISBackend.Controllers
         /// Retrieves all doctors with their details
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<DoctorDto>>> GetAllDoctors()
         {
             var doctors = await _context.Users

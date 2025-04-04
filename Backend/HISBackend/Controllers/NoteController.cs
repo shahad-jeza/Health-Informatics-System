@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HISBackend.Controllers
 {
@@ -48,59 +49,60 @@ namespace HISBackend.Controllers
         /// <summary>
         /// Creates a new note for an appointment
         /// </summary>
-[HttpPost]
-public async Task<ActionResult<NoteDto>> CreateNote([FromBody] NoteCreateDto createDto)
-{
-    if (!ModelState.IsValid)
-    {
-        return BadRequest(ModelState);
-    }
-
-    // Verify appointment exists
-    var appointment = await _context.Appointments
-        .Include(a => a.Patient)
-        .FirstOrDefaultAsync(a => a.AppointmentId == createDto.AppointmentId);
-    
-    if (appointment == null)
-    {
-        return BadRequest("Appointment does not exist");
-    }
-
-    // MedicalHistory is required in your model
-    if (!createDto.MedicalHistoryId.HasValue)
-    {
-        return BadRequest("MedicalHistoryId is required");
-    }
-
-    var medicalHistory = await _context.MedicalHistories
-        .FirstOrDefaultAsync(mh => mh.HistoryID == createDto.MedicalHistoryId);
-    
-    if (medicalHistory == null)
-    {
-        return BadRequest("Medical history not found");
-    }
-
-    var note = new Note
-    {
-        NoteId = Guid.NewGuid(),
-        AppointmentId = appointment.Id,
-        MedicalHistoryId = medicalHistory.Id, // Now using the actual ID
-        NoteText = createDto.NoteText
-    };
-
-    _context.Notes.Add(note);
-    await _context.SaveChangesAsync();
-
-    return CreatedAtAction(
-        nameof(GetNotesByPatient), 
-        new { patientUserId = appointment.Patient.UserId },
-        new NoteDto
+        [HttpPost]
+        [Authorize(Roles = "Doctor")]
+        public async Task<ActionResult<NoteDto>> CreateNote([FromBody] NoteCreateDto createDto)
         {
-            NoteId = note.NoteId,
-            AppointmentId = appointment.AppointmentId,
-            MedicalHistoryId = medicalHistory.HistoryID,
-            NoteText = note.NoteText
-        });
-}
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Verify appointment exists
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(a => a.AppointmentId == createDto.AppointmentId);
+
+            if (appointment == null)
+            {
+                return BadRequest("Appointment does not exist");
+            }
+
+            // MedicalHistory is required in your model
+            if (!createDto.MedicalHistoryId.HasValue)
+            {
+                return BadRequest("MedicalHistoryId is required");
+            }
+
+            var medicalHistory = await _context.MedicalHistories
+                .FirstOrDefaultAsync(mh => mh.HistoryID == createDto.MedicalHistoryId);
+
+            if (medicalHistory == null)
+            {
+                return BadRequest("Medical history not found");
+            }
+
+            var note = new Note
+            {
+                NoteId = Guid.NewGuid(),
+                AppointmentId = appointment.Id,
+                MedicalHistoryId = medicalHistory.Id, // Now using the actual ID
+                NoteText = createDto.NoteText
+            };
+
+            _context.Notes.Add(note);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(
+                nameof(GetNotesByPatient),
+                new { patientUserId = appointment.Patient.UserId },
+                new NoteDto
+                {
+                    NoteId = note.NoteId,
+                    AppointmentId = appointment.AppointmentId,
+                    MedicalHistoryId = medicalHistory.HistoryID,
+                    NoteText = note.NoteText
+                });
+        }
     }
 }
