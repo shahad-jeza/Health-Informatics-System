@@ -8,11 +8,11 @@ import { ApiConfigService } from '../api-config/api-config.service';
 @Injectable({
   providedIn: 'root'
 })
-export class AppointmentService {
-  constructor(
-    private http: HttpClient,
-    private apiConfig: ApiConfigService
-  ) { }
+  export class AppointmentService {
+    constructor(
+      private http: HttpClient,
+      private apiConfig: ApiConfigService
+    ) { }
 
   // Get all available appointments
   getAllAppointments(): Observable<Appointment[]> {
@@ -31,23 +31,27 @@ export class AppointmentService {
   }
 
   // Get appointments for a specific doctor
-getDoctorAppointments(doctorId: string): Observable<Appointment[]> {
-  console.log(`[AppointmentService] Fetching appointments for doctor: ${doctorId}`);
-  
-  return this.http.get<Appointment[]>(
-    this.apiConfig.getEndpoint(`Appointment/doctor/${doctorId}`),
-    this.apiConfig.httpOptions
-  ).pipe(
-    map(appointments => {
-      console.log(`[AppointmentService] Received ${appointments.length} appointments for doctor ${doctorId}`);
-      return appointments;
-    }),
-    catchError(error => {
-      console.error(`[AppointmentService] Error fetching doctor appointments: ${error.message}`);
-      return throwError(() => new Error(`Failed to fetch doctor appointments: ${error.message}`));
-    })
-  );
-}
+  getDoctorAppointments(doctorId: string): Observable<Appointment[]> {
+    // Make HTTP GET request to the doctor-specific appointments endpoint
+    return this.http.get<Appointment[]>(
+      // Build the endpoint URL with the doctor's ID parameter
+      this.apiConfig.getEndpoint(`Appointment/doctor/${doctorId}`),
+      // Include authentication headers and other HTTP options
+      this.apiConfig.httpOptions
+    ).pipe(
+      // Process the response data (currently just passing through)
+      map(appointments => {
+        return appointments;
+      }),
+      // Handle any errors that occur during the HTTP request
+      catchError(error => {
+        // Log the error
+        console.error(`[AppointmentService] Error fetching doctor appointments: ${error.message}`);
+        // Return a new error with user-friendly message
+        return throwError(() => new Error(`Failed to fetch doctor appointments: ${error.message}`));
+      })
+    );
+  }
   // Create a new appointment
   createAppointment(appointment: any): Observable<Appointment> {
     // Step 1: Create the appointment

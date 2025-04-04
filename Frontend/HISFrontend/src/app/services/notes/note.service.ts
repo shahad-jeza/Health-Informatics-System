@@ -17,6 +17,7 @@ export class NoteService {
     private apiConfig: ApiConfigService
   ) {}
   
+  // Get all notes for a specific patient - GET /api/Note/patient/{patientUserId}
   getNotesByPatientId(patientUserId: string): Observable<Note[]> {
     return this.http.get<Note[]>(
       this.apiConfig.getEndpoint(`Note/patient/${patientUserId}`),
@@ -24,7 +25,7 @@ export class NoteService {
     );
   }
   
-// Update the createNote method to accept a partial Note
+// Create a new note - POST /api/Note
 createNote(note: CreateNoteDto): Observable<Note> {
   return this.http.post<Note>(
     this.apiConfig.getEndpoint('Note'),

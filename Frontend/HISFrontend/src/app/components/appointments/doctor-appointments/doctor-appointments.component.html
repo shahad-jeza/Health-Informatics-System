@@ -1,11 +1,12 @@
-<!-- Main Appointment Card -->
+<!-- ================ MAIN APPOINTMENT CARD ================ -->
 <div class="card mt-5 mb-5 border-0" style="box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 6px 10px -3px rgba(0,0,0,0.15);border-radius: 0;">
   <div class="card-body">
-    <!-- Title section -->
+    <!-- Card Header Title -->
     <h3 *ngIf="title" class="mb-4">{{ title }}</h3>
     <h3 *ngIf="!title" class="mb-4">{{ appointmentType === 'upcoming' ? 'Upcoming' : 'Past' }} Appointments</h3>
 
-    <!-- Loading indicator -->
+    <!-- ================ STATUS MESSAGES ================ -->
+    <!-- Loading Indicator -->
     <div *ngIf="loading" class="text-center my-5">
       <div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -13,55 +14,52 @@
       <p class="mt-2">Loading appointments...</p>
     </div>
 
-    <!-- Error message -->
+    <!-- Error Message -->
     <div *ngIf="error" class="alert alert-danger">
       {{ error }}
     </div>
 
-    <!-- Success message -->
+    <!-- Success Message -->
     <div *ngIf="successMessage" class="alert alert-success">
       {{ successMessage }}
     </div>
     
-    <!-- No appointments message -->
+    <!-- No Appointments Message -->
     <div *ngIf="!loading && !error && filteredAppointments.length === 0" class="alert alert-info">
       No {{ appointmentType }} appointments found.
     </div>
 
- <!-- Appointments list -->
-<div *ngIf="!loading && !error && filteredAppointments.length > 0">
-  <div *ngFor="let appointment of filteredAppointments" class="appointment-card mb-3 py-2 border rounded">
-    
-    <!-- Single row layout with all information -->
-    <div class="d-flex justify-content-between align-items-center px-3">
-      <!-- Left section: Patient name  -->
-      <div class="d-flex align-items-center" style="width: 25%">
-        <p class="mb-0 text-primary fw-semibold text-truncate">
-          {{ appointment.patientUserId ? getPatientName(appointment.patientUserId) : 'No patient assigned' }}
-        </p>
-      </div>
-      
-      <!-- Middle section: Date/Time and Doctor -->
-      <div class="d-flex align-items-center" style="width: 50%">
-        <div class="me-4">
-          <p class="mb-0">
-            <i class="bi bi-calendar me-1"></i> {{ formatDate(appointment.date) }}
-            <span class="ms-1">{{ formatTime(appointment.date) }}</span>
-          </p>
+    <!-- ================ APPOINTMENTS LIST ================ -->
+    <div *ngIf="!loading && !error && filteredAppointments.length > 0">
+      <!-- Individual Appointment Card -->
+      <div *ngFor="let appointment of filteredAppointments" class="appointment-card mb-3 py-2 border rounded">
+        <!-- Single Row Layout -->
+        <div class="d-flex justify-content-between align-items-center px-3">
+          <!-- Patient Name Section (Left) -->
+          <div class="d-flex align-items-center" style="width: 25%">
+            <p class="mb-0 text-dark fw-semibold text-truncate">
+              {{ appointment.patientUserId ? getPatientName(appointment.patientUserId) : 'No patient assigned' }}
+            </p>
+          </div>
+          
+          <!-- Date/Time Section (Middle) -->
+          <div class="d-flex align-items-center ms-4" style="width: 50%">
+            <div class="me-4">
+              <p class="mb-0">
+                <i class="bi bi-calendar me-1"></i> {{ formatDate(appointment.date) }}
+                <span class="ms-1">{{ formatTime(appointment.date) }}</span>
+              </p>
+            </div>
+          </div>
+          
+          <!-- Status Badge Section (Right) -->
+          <div class="text-end" style="width: 25%">
+            <span *ngIf="appointmentType === 'upcoming'" class="badge rounded-pill shadow-sm" 
+                  [ngStyle]="getStatusStyle(appointment.status)">
+              {{ getStatusText(appointment.status) }}
+            </span>
+          </div>
         </div>
-        <div>
-          <p class="mb-0 text-muted">
-            <i class="bi bi-person-badge me-1"></i> {{ getDoctorNameFromAppointment(appointment) || 'Doctor' }}
-          </p>
-        </div>
-      </div>
-      
-      <!-- Status badge -->
-      <div class="text-end" style="width: 25%">
-        <span class="badge rounded-pill shadow-sm" 
-              [ngStyle]="getStatusStyle(appointment.status)">
-          {{ getStatusText(appointment.status) }}
-        </span>
       </div>
     </div>
   </div>

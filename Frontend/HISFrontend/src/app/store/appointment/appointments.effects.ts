@@ -10,16 +10,21 @@ import { AppointmentStatus, Appointment } from '../../models/appointment.model';
 export class AppointmentEffects {
 
   // Update appointment status 
+  // Effect that handles the appointment status update action
   updateAppointmentStatus$ = createEffect(() => this.actions$.pipe(
+    // Listen for the specific status update action
     ofType(AppointmentActions.updateAppointmentStatus),
+    // Process each update request one at a time
     switchMap(({ appointmentId, status }) => {
+      // Prepare the data to be sent to the API
       const updateData = { status };
-     
+    
       return this.appointmentService.updateAppointment(appointmentId, updateData).pipe(
         map(appointment => {
-          
+          // Handle case when API returns no data
           if (!appointment) {
             console.warn('Service returned undefined appointment, creating replacement');
+            // Create minimal replacement object to prevent UI errors
             const replacementAppointment: Appointment = {
               id: appointmentId,             
               appointmentId: appointmentId,
@@ -32,8 +37,10 @@ export class AppointmentEffects {
             return AppointmentActions.updateAppointmentStatusSuccess({ appointment: replacementAppointment });
           }
           
+          // Normal success path
           return AppointmentActions.updateAppointmentStatusSuccess({ appointment });
         }),
+        // Handle any API or network errors
         catchError(error => {
           console.error('Error updating appointment status:', error);
           return of(AppointmentActions.updateAppointmentStatusFailure({
@@ -50,8 +57,7 @@ export class AppointmentEffects {
       switchMap(action => {
         // Always use the doctorId as a string (which should be a GUID)
         const doctorGuid = String(action.doctorId);
-        console.log(`Loading appointments for doctor GUID: ${doctorGuid}`);
-        
+                
         return this.appointmentService.getDoctorAppointments(doctorGuid)
           .pipe(
             map(appointments => AppointmentActions.loadDoctorAppointmentsSuccess({ appointments })),

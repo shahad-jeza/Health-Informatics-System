@@ -1,7 +1,7 @@
 <div class="card mt-5 mb-5 border-0" style="box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 6px 10px -3px rgba(0,0,0,0.15);border-radius: 0;">
   <div class="card-body">
     <h4 class="mb-4 mt-5 text-center">Patient Summary</h4>
-    
+
     <!-- Loading state -->
     <div *ngIf="loading || (notesLoading$ | async) || (doctorsLoading$ | async)" class="text-center p-5">
       <div class="spinner-border" role="status">
@@ -20,7 +20,7 @@
       
       <!-- Medical History Section -->
       <div class="mb-4">
-        <h5 class="mb-3 mt-4 text-center">Medical History</h5>
+        <p class="mb-3 mt-4 text-center">Medical History</p>
         
         <!-- Medical History Loading Indicator -->
         <div *ngIf="medicalHistoryLoading" class="text-center">
@@ -48,7 +48,7 @@
       
       <!-- Notes Section -->
       <div class="mb-4">
-        <h5 class="mb-3 mt-4 text-center">Appointment Notes</h5>
+        <p class="mb-3 mt-4 text-center">Appointment Notes</p>
         
         <!-- No Notes Message -->
         <div *ngIf="(notes$ | async)?.length === 0" class="text-center p-3 text-muted">
