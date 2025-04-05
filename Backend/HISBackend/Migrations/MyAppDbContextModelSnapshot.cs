@@ -203,6 +203,9 @@ namespace HISBackend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("MedicalHistoryId");
 
                     b.ToTable("Users");
@@ -214,7 +217,7 @@ namespace HISBackend.Migrations
                             Email = "doctor1@gmail.com",
                             FirstName = "John",
                             LastName = "Doe",
-                            PasswordHash = "hashedpassword1",
+                            PasswordHash = "$2a$11$sCYEzy1GbvTU/r7N2.GSOezCKjwdqbPDVP.aGydVsfqWrY7YGIe56",
                             Role = "Doctor",
                             Specialty = "General",
                             UserId = new Guid("11111111-1111-1111-1111-111111111111")
@@ -225,7 +228,7 @@ namespace HISBackend.Migrations
                             Email = "doctor2@gmail.com",
                             FirstName = "Jane",
                             LastName = "Smith",
-                            PasswordHash = "hashedpassword2",
+                            PasswordHash = "$2a$11$0oXRLt4lkiQa1UuO3kNeWucoWZcQTobSNyvOe8eM/YrbJq2M40gZ6",
                             Role = "Doctor",
                             Specialty = "Dermatolgy",
                             UserId = new Guid("22222222-2222-2222-2222-222222222222")
@@ -236,7 +239,7 @@ namespace HISBackend.Migrations
                             Email = "patient1@gmail.com",
                             FirstName = "Alice",
                             LastName = "Brown",
-                            PasswordHash = "hashedpassword3",
+                            PasswordHash = "$2a$11$UvzWUMWnCNotNCUIpr0D4eZXFCyitPK5zM0D1dmY1zpOfsRx41a5y",
                             Role = "Patient",
                             UserId = new Guid("33333333-3333-3333-3333-333333333333")
                         },
@@ -246,7 +249,7 @@ namespace HISBackend.Migrations
                             Email = "patient2@gmail.com",
                             FirstName = "Bob",
                             LastName = "White",
-                            PasswordHash = "hashedpassword4",
+                            PasswordHash = "$2a$11$bMFcNFc2ecmvx4js.ESYle.CfD/h0TP5Rkj67GnvjL3SYe2GWMwjC",
                             Role = "Patient",
                             UserId = new Guid("44444444-4444-4444-4444-444444444444")
                         },
@@ -256,9 +259,75 @@ namespace HISBackend.Migrations
                             Email = "admin@gmail.com",
                             FirstName = "Razan",
                             LastName = "Alatawi",
-                            PasswordHash = "hashedpassword5",
+                            PasswordHash = "$2a$11$AGvI3U5b6kxDgRH5Y952NedIWMuBMknT.kMpg38yXwzkalITM0JrW",
                             Role = "Admin",
                             UserId = new Guid("55555555-5555-5555-5555-555555555555")
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Email = "cardio1@gmail.com",
+                            FirstName = "Michael",
+                            LastName = "Johnson",
+                            PasswordHash = "$2a$11$V8Blh3mxsi96H6.rl4pjT.du4mGkXRnGiiDTKl0Rs7njAQP8Z26ym",
+                            Role = "Doctor",
+                            Specialty = "Dentisity",
+                            UserId = new Guid("66666666-6666-6666-6666-666666666666")
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Email = "cardio2@gmail.com",
+                            FirstName = "Lisa",
+                            LastName = "Chen",
+                            PasswordHash = "$2a$11$yyCV95KpctaynF63hkk6r.uLt9PeR2Phk..b03UlC69lJvwxc3GBC",
+                            Role = "Doctor",
+                            Specialty = "Dentisity",
+                            UserId = new Guid("77777777-7777-7777-7777-777777777777")
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Email = "pedia1@gmail.com",
+                            FirstName = "Emily",
+                            LastName = "Davis",
+                            PasswordHash = "$2a$11$SuwmMY7Q4mTn0lJJfCS2veC7NC5i/r39oLTmbcfiisePy0ALg9XGG",
+                            Role = "Doctor",
+                            Specialty = "Neurology",
+                            UserId = new Guid("88888888-8888-8888-8888-888888888888")
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Email = "pedia2@gmail.com",
+                            FirstName = "James",
+                            LastName = "Wilson",
+                            PasswordHash = "$2a$11$RMHMugTnrb1aJLwZsAaXk.e8ksoOK0Hv9daZVivLpbdv5mk93yJCy",
+                            Role = "Doctor",
+                            Specialty = "Dermatolgy",
+                            UserId = new Guid("99999999-9999-9999-9999-999999999999")
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Email = "neuro1@gmail.com",
+                            FirstName = "Sarah",
+                            LastName = "Williams",
+                            PasswordHash = "$2a$11$FlZNuUcfPhOrlRcRTl0na.ChXfgeW0pFTzweoi1yY0obTQtEt3bOS",
+                            Role = "Doctor",
+                            Specialty = "Neurology",
+                            UserId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Email = "ortho1@gmail.com",
+                            FirstName = "Robert",
+                            LastName = "Brown",
+                            PasswordHash = "$2a$11$gfUOO5AM0MbQhi616H9ehu0Y0iEYWK/oDk8/7nqFDyZtGKUuSCpUa",
+                            Role = "Doctor",
+                            Specialty = "Neurology",
+                            UserId = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
                         });
                 });
 

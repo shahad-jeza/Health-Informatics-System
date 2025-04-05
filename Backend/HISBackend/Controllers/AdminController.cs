@@ -48,7 +48,7 @@ namespace HISBackend.Controllers
 
                 Patients = await _context.Users
                     .Where(u => u.Role == RoleType.Patient)
-                    .Select(u => new PatientDto  // Changed to PatientDto
+                    .Select(u => new PatientDto 
                     {
                         UserId = u.UserId,  // Using GUID
                         FirstName = u.FirstName,

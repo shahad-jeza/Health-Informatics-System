@@ -359,3 +359,5 @@ C:/Users/razan/OneDrive/Desktop/Health-Informatics-System/Backend/HISBackend/obj
 /Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/obj/Debug/net9.0/HISBackend.pdb
 /Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/obj/Debug/net9.0/HISBackend.genruntimeconfig.cache
 /Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/obj/Debug/net9.0/ref/HISBackend.dll
+/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/bin/Debug/net9.0/BCrypt.Net-Next.dll
+/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/bin/Debug/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll

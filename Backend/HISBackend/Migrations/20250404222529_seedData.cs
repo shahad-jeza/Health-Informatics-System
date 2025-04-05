@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HISBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class SeedData : Migration
+    public partial class seedData : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -106,11 +106,17 @@ namespace HISBackend.Migrations
                 columns: new[] { "Id", "Email", "FirstName", "LastName", "MedicalHistoryId", "PasswordHash", "Phone", "Role", "Specialty", "UserId" },
                 values: new object[,]
                 {
-                    { 1, "doctor1@gmail.com", "John", "Doe", null, "hashedpassword1", null, "Doctor", "General", new Guid("11111111-1111-1111-1111-111111111111") },
-                    { 2, "doctor2@gmail.com", "Jane", "Smith", null, "hashedpassword2", null, "Doctor", "Dermatolgy", new Guid("22222222-2222-2222-2222-222222222222") },
-                    { 3, "patient1@gmail.com", "Alice", "Brown", null, "hashedpassword3", null, "Patient", null, new Guid("33333333-3333-3333-3333-333333333333") },
-                    { 4, "patient2@gmail.com", "Bob", "White", null, "hashedpassword4", null, "Patient", null, new Guid("44444444-4444-4444-4444-444444444444") },
-                    { 5, "admin@gmail.com", "Razan", "Alatawi", null, "hashedpassword5", null, "Admin", null, new Guid("55555555-5555-5555-5555-555555555555") }
+                    { 1, "doctor1@gmail.com", "John", "Doe", null, "$2a$11$sCYEzy1GbvTU/r7N2.GSOezCKjwdqbPDVP.aGydVsfqWrY7YGIe56", null, "Doctor", "General", new Guid("11111111-1111-1111-1111-111111111111") },
+                    { 2, "doctor2@gmail.com", "Jane", "Smith", null, "$2a$11$0oXRLt4lkiQa1UuO3kNeWucoWZcQTobSNyvOe8eM/YrbJq2M40gZ6", null, "Doctor", "Dermatolgy", new Guid("22222222-2222-2222-2222-222222222222") },
+                    { 3, "patient1@gmail.com", "Alice", "Brown", null, "$2a$11$UvzWUMWnCNotNCUIpr0D4eZXFCyitPK5zM0D1dmY1zpOfsRx41a5y", null, "Patient", null, new Guid("33333333-3333-3333-3333-333333333333") },
+                    { 4, "patient2@gmail.com", "Bob", "White", null, "$2a$11$bMFcNFc2ecmvx4js.ESYle.CfD/h0TP5Rkj67GnvjL3SYe2GWMwjC", null, "Patient", null, new Guid("44444444-4444-4444-4444-444444444444") },
+                    { 5, "admin@gmail.com", "Razan", "Alatawi", null, "$2a$11$AGvI3U5b6kxDgRH5Y952NedIWMuBMknT.kMpg38yXwzkalITM0JrW", null, "Admin", null, new Guid("55555555-5555-5555-5555-555555555555") },
+                    { 6, "cardio1@gmail.com", "Michael", "Johnson", null, "$2a$11$V8Blh3mxsi96H6.rl4pjT.du4mGkXRnGiiDTKl0Rs7njAQP8Z26ym", null, "Doctor", "Dentisity", new Guid("66666666-6666-6666-6666-666666666666") },
+                    { 7, "cardio2@gmail.com", "Lisa", "Chen", null, "$2a$11$yyCV95KpctaynF63hkk6r.uLt9PeR2Phk..b03UlC69lJvwxc3GBC", null, "Doctor", "Dentisity", new Guid("77777777-7777-7777-7777-777777777777") },
+                    { 8, "pedia1@gmail.com", "Emily", "Davis", null, "$2a$11$SuwmMY7Q4mTn0lJJfCS2veC7NC5i/r39oLTmbcfiisePy0ALg9XGG", null, "Doctor", "Neurology", new Guid("88888888-8888-8888-8888-888888888888") },
+                    { 9, "pedia2@gmail.com", "James", "Wilson", null, "$2a$11$RMHMugTnrb1aJLwZsAaXk.e8ksoOK0Hv9daZVivLpbdv5mk93yJCy", null, "Doctor", "Dermatolgy", new Guid("99999999-9999-9999-9999-999999999999") },
+                    { 10, "neuro1@gmail.com", "Sarah", "Williams", null, "$2a$11$FlZNuUcfPhOrlRcRTl0na.ChXfgeW0pFTzweoi1yY0obTQtEt3bOS", null, "Doctor", "Neurology", new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa") },
+                    { 11, "ortho1@gmail.com", "Robert", "Brown", null, "$2a$11$gfUOO5AM0MbQhi616H9ehu0Y0iEYWK/oDk8/7nqFDyZtGKUuSCpUa", null, "Doctor", "Neurology", new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb") }
                 });
 
             migrationBuilder.InsertData(
@@ -166,6 +172,12 @@ namespace HISBackend.Migrations
                 name: "IX_Notes_MedicalHistoryId",
                 table: "Notes",
                 column: "MedicalHistoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_MedicalHistoryId",
