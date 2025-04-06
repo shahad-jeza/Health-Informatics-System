@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\razan\\OneDrive\\Desktop\\Health-Informatics-System\\Backend\\HISBackend\\HISBackend.csproj": {}
+    "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\razan\\OneDrive\\Desktop\\Health-Informatics-System\\Backend\\HISBackend\\HISBackend.csproj": {
+    "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\razan\\OneDrive\\Desktop\\Health-Informatics-System\\Backend\\HISBackend\\HISBackend.csproj",
+        "projectUniqueName": "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
         "projectName": "HISBackend",
-        "projectPath": "C:\\Users\\razan\\OneDrive\\Desktop\\Health-Informatics-System\\Backend\\HISBackend\\HISBackend.csproj",
-        "packagesPath": "C:\\Users\\razan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\razan\\OneDrive\\Desktop\\Health-Informatics-System\\Backend\\HISBackend\\obj\\",
+        "projectPath": "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
+        "packagesPath": "/Users/shahadjeza/.nuget/packages/",
+        "outputPath": "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\razan\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/shahadjeza/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -50,9 +44,53 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.0.3, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.2, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.3, )"
+            },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[8.7.0, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.7.0, )"
             }
           },
           "imports": [
@@ -74,7 +112,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
