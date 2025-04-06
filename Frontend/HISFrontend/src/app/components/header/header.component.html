@@ -1,0 +1,15 @@
+<header class="header-container mb-5">
+    <div class="logo">
+      <img src="../../../assets/HIS-Logo.jpg" alt="Company Logo">
+      MediTrust
+
+    </div>
+    
+    <nav class="nav-items">
+      <ul>
+        @for (item of navItems; track item.name) {
+          <li><a [routerLink]="item.path">{{item.name}}</a></li>
+        }
+      </ul>
+    </nav>
+  </header>

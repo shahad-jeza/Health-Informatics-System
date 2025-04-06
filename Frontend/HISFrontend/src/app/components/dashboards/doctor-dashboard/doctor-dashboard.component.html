@@ -1,0 +1,181 @@
+<!-- Main Container -->
+<div class="container-fluid mt-4">
+  <div class="row justify-content-center">
+    <div class="col-11 col-xl-10">
+      <div class="dashboard-wrapper mx-md-4">
+        
+        <!-- =============== APPOINTMENTS SECTION =============== -->
+        <div class="row d-flex equal-height-row">
+          <!-- Upcoming Appointments -->
+          <div class="col-md-6 mb-4 d-flex">
+            <app-doctor-appointments
+              class="w-100"
+              [title]="'Upcoming Appointments'"
+              [appointmentType]="'upcoming'"
+              [doctorId]="doctorId"
+              [refreshTimestamp]="refreshTimestamp">
+            </app-doctor-appointments>
+          </div>
+
+          <!-- Past Appointments -->
+          <div class="col-md-6 mb-4 d-flex">
+            <app-doctor-appointments
+              class="w-100"
+              [title]="'Past Appointments'"
+              [appointmentType]="'past'"
+              [doctorId]="doctorId"
+              [refreshTimestamp]="refreshTimestamp">
+            </app-doctor-appointments>
+          </div>
+        </div>
+
+        <!-- =============== PATIENT MANAGEMENT SECTION =============== -->
+        <div class="row mt-5 equal-height-row">
+          <!-- === PATIENT SUMMARY CARD === -->
+          <div class="col-md-6 mb-4 d-flex">
+            <div class="card mt-5 mb-5 border-0 w-100" style="box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 6px 10px -3px rgba(0,0,0,0.15);border-radius: 0;">
+              <div class="card-body p-5">
+                <!-- Card Header: Only shown when no patient is selected -->
+                <div *ngIf="!selectedPatientId" class="mb-4 mt-5 text-center">
+                  <h3 class="mb-0">Patient Summary</h3>
+                </div>
+                
+                <!-- Success Message -->
+                <div *ngIf="patientSuccessMessage" class="alert alert-success">
+                  {{ patientSuccessMessage }}
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div *ngIf="loading && !patientOptions.length" class="text-center my-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading patients...</span>
+                  </div>
+                  <p class="mt-2">Loading patients...</p>
+                </div>
+
+                <!-- Patient Selection Dropdown -->
+                <div class="mb-4" *ngIf="patientOptions.length > 0">
+                  <label for="patientSummarySelect" class="form-label text-center w-100">Patient Name</label>
+                  <select class="form-select" id="patientSummarySelect" [(ngModel)]="selectedPatientId" (change)="onPatientSelected()">
+                    <option [ngValue]="null">Choose a patient...</option>
+                    <option *ngFor="let patient of patientOptions" [value]="patient.userId">
+                      {{ patient.name }}
+                    </option>
+                  </select>
+                </div>
+                
+                <!-- Empty State Message -->
+                <div *ngIf="!selectedPatientId" class="text-center my-5">
+                  <p class="text-muted">Select a patient to view their summary</p>
+                </div>
+                
+                <!-- Patient Summary Component -->
+                <div *ngIf="selectedPatientId" class="patient-summary-container position-relative">
+                  <!-- Edit button  -->
+                  <button class="btn custom-edit-btn position-absolute"
+                          style="top: 10px; right: 10px; z-index: 10;"
+                          (click)="editPatientMedicalHistory()">Edit</button>
+                          
+                  <app-patient-summary [patientUserId]="selectedPatientId">
+                  </app-patient-summary>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+          
+          <!-- === CREATE NOTES CARD === -->
+          <div class="col-md-6 mb-4 d-flex">
+            <div class="card mt-5 mb-5 border-0 w-100" style="box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 6px 10px -3px rgba(0,0,0,0.15);border-radius: 0;">
+              <div class="card-body p-5 ">
+                <!-- Card Header -->
+                <h3 class="mb-4 mt-5 text-center">Create Notes</h3>
+                
+                <!-- Error Message -->
+                <div *ngIf="error" class="alert alert-danger">
+                  {{ error }}
+                </div>
+                
+                <!-- Success Message -->
+                <div *ngIf="noteSuccessMessage" class="alert alert-success">
+                  {{ noteSuccessMessage }}
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div *ngIf="loading && !appointmentOptions.length" class="text-center my-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading appointments...</span>
+                  </div>
+                  <p class="mt-2">Loading appointments...</p>
+                </div>
+                
+                <!-- Appointment Selection Dropdown -->
+                <div class="mb-3" *ngIf="appointmentOptions.length > 0">
+                  <label for="appointmentSelect" class="form-label text-center w-100">Select Appointment</label>
+                  <select class="form-select" id="appointmentSelect" [(ngModel)]="selectedAppointmentId" (change)="onAppointmentSelected()">
+                    <option [ngValue]="null">Choose an appointment...</option>
+                    <option *ngFor="let appt of appointmentOptions" [value]="appt.appointmentId">
+                      {{ appt.patientName }} - {{ formatDate(appt.date) }}
+                    </option>
+                  </select>
+                </div>
+                
+                <!-- Notes Text Input -->
+                <div class="mb-3">
+                  <label for="noteText" class="form-label text-center w-100">Note</label>
+                  <textarea class="form-control" id="noteText" rows="5" placeholder="Enter your medical notes here..." 
+                    [(ngModel)]="noteText" [disabled]="!selectedAppointmentId"></textarea>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="d-flex justify-content-center note-button-container">
+                  <button class="btn btn-notes px-4 py-2" 
+                    [disabled]="!selectedAppointmentId || !noteText || loading"
+                    (click)="saveNote()">
+                    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                    Save Note
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =============== MEDICAL HISTORY MODAL =============== -->
+        <div class="custom-modal-overlay" *ngIf="isEditModalOpen" (click)="cancelEdit()">
+          <div class="custom-modal-content" (click)="$event.stopPropagation()">
+            <!-- Modal Header -->
+            <div class="custom-modal-header">
+              <h5>Edit Medical History</h5>
+              <button type="button" class="custom-modal-close" (click)="cancelEdit()">×</button>
+            </div>
+            
+            <!-- Modal Body with Form Fields -->
+            <div class="custom-modal-body">
+              <div class="mb-3">
+                <label for="diagnosis" class="form-label">Diagnosis</label>
+                <textarea class="form-control" id="diagnosis" rows="2" [(ngModel)]="editingMedicalRecord.diagnosis"></textarea>
+              </div>
+              
+              <div class="mb-3">
+                <label for="allergies" class="form-label">Allergies</label>
+                <textarea class="form-control" id="allergies" rows="2" [(ngModel)]="editingMedicalRecord.allergies"></textarea>
+              </div>
+              
+              <div class="mb-3">
+                <label for="medicines" class="form-label">Medicines</label>
+                <textarea class="form-control" id="medicines" rows="2" [(ngModel)]="editingMedicalRecord.medicines"></textarea>
+              </div>
+            </div>
+            
+            <!-- Modal Footer with Action Buttons -->
+            <div class="custom-modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+              <button type="button" class="btn btn-notes" (click)="saveMedicalHistory()">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
