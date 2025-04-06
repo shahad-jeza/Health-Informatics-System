@@ -1,5 +1,5 @@
 // Core Angular and RxJS imports
-import { Component, Input, OnInit, OnChanges, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
@@ -10,16 +10,19 @@ import * as DoctorActions from '../../../store/doctor/doctor.actions';
 import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 import * as AppointmentActions from '../../../store/appointment/appointments.actions';
 import * as AppointmentSelectors from '../../../store/appointment/appointments.selectors';
+import * as PatientActions from '../../../store/patient/patient.actions';
+import * as PatientSelectors from '../../../store/patient/patient.selectors';
 
 // Models
 import { Appointment, AppointmentStatus } from '../../../models/appointment.model';
 import { Doctor } from '../../../store/doctor/doctor.state';
 import { User, getFullName, RoleType } from '../../../models/user.model';
+import { Patient } from '../../../models/patient.model';
 
 // Services
 import { AppointmentService } from '../../../services/appointments/appointment.service';
 import { MedicalHistoryService } from '../../../services/medicalHistory/medical-history.service';
-import { AdminService, PatientDto } from '../../../services/admin/admin.service';
+import { PatientService } from '../../../services/patient/patient.service';
 
 @Component({
   selector: 'app-doctor-appointments',
@@ -39,7 +42,7 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
   loading: boolean = true;
   error: string | null = null;
   successMessage: string | null = null;
-  AppointmentStatus = AppointmentStatus; // Make enum available to template
+  AppointmentStatus = AppointmentStatus; 
   
   // ===== DATA =====
   appointments: Appointment[] = [];
@@ -50,9 +53,10 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
   doctors$: Observable<Doctor[]>;
+  patients$: Observable<Patient[]>;
   
   // ===== DATA CACHES =====
-  private patients = new Map<string, PatientDto>();
+  private patients = new Map<string, Patient>();
   doctorMap: Map<string, Doctor> = new Map();
   private patientNameCache = new Map<string, string>();
   private patientDetails = new Map<string, User>();
@@ -63,14 +67,17 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
   constructor(
     private store: Store, 
     private appointmentService: AppointmentService, 
-    private medicalHistoryService: MedicalHistoryService, 
-    private adminService: AdminService
+    private medicalHistoryService: MedicalHistoryService,
+    private patientService: PatientService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {
     // Initialize store selectors
     this.appointments$ = this.store.select(AppointmentSelectors.selectAllAppointments);
     this.loading$ = this.store.select(AppointmentSelectors.selectAppointmentsLoading);
     this.error$ = this.store.select(AppointmentSelectors.selectAppointmentsError);
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
+    this.patients$ = this.store.select(PatientSelectors.selectAllPatients);
   }
   
   // ===== LIFECYCLE HOOKS =====
@@ -82,6 +89,9 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
     
     // Load doctors from store
     this.store.dispatch(DoctorActions.loadDoctors());
+    
+    // Load patients from store
+    this.store.dispatch(PatientActions.loadPatients());
     
     // Load appointments for the doctor
     this.loadAppointmentsForDoctor();
@@ -110,22 +120,30 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
   // ===== DATA LOADING =====
   
   /**
-   * Loads patient data from admin service for name display
+   * Loads patient data from patient service for name display
    */
   private loadPatients(): void {
-    this.adminService.getSummary().subscribe({
-      next: (summary) => {
-        summary.patients.forEach(patient => {
+    // Subscribe to patients from store
+    this.subscriptions.push(
+      this.patients$.subscribe(patients => {
+        // Clear existing cache
+        this.patients.clear();
+        
+        // Update our local cache with the latest patient data
+        patients.forEach(patient => {
           this.patients.set(patient.userId, patient);
+          
+          // Pre-populate name cache for performance
+          const fullName = `${patient.firstName} ${patient.lastName}`;
+          this.patientNameCache.set(patient.userId, fullName);
         });
         
         // Force refresh UI with updated patient names
-        this.filteredAppointments = [...this.filteredAppointments];
-      },
-      error: (error) => {
-        console.error('Error loading admin summary:', error);
-      }
-    });
+        if (this.filteredAppointments.length > 0) {
+          this.filteredAppointments = [...this.filteredAppointments];
+        }
+      })
+    );
   }
   
   /**
@@ -370,10 +388,9 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
     // Implementation placeholder
   }
   
-  // ===== FORMATTING & DISPLAY HELPERS =====
-  
+  // ===== FORMATTING & DISPLAY HELPERS ===== 
   /**
-   * Gets a patient name by ID
+   * Gets a patient name by ID using Patient service/store
    */
   getPatientName(patientId: string | null): string {
     if (!patientId) return 'No patient assigned';
@@ -383,18 +400,29 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
       return this.patientNameCache.get(patientId)!;
     }
     
-    // Look up in patients map
-    const patient = this.patients.get(patientId);
-    if (patient) {
-      const fullName = `${patient.firstName} ${patient.lastName}`;
-      this.patientNameCache.set(patientId, fullName);
-      return fullName;
-    }
+    // Set a temporary ID-based name first
+    const tempName = `Patient ${patientId.substring(0, 8)}`;
+    this.patientNameCache.set(patientId, tempName);
     
-    // Fall back to ID-based name
-    const idBasedName = `Patient ${patientId.substring(0, 8)}`;
-    this.patientNameCache.set(patientId, idBasedName);
-    return idBasedName;
+    // Schedule the async operation for the next VM turn to avoid detection errors
+    setTimeout(() => {
+      // Inside a timeout to defer execution after the current detection cycle
+      this.patientService.getPatientName(patientId).subscribe(name => {
+        this.patientNameCache.set(patientId, name);
+        
+        // Use detectChanges instead of markForCheck for explicit change detection
+        this.ngZone.run(() => {
+          // Update the filtered appointments array to trigger change detection
+          if (this.filteredAppointments.length > 0) {
+            this.filteredAppointments = [...this.filteredAppointments];
+            this.cdr.detectChanges();
+          }
+        });
+      });
+    }, 0);
+    
+    // Always return the cached value for the initial render
+    return tempName;
   }
   
   /**

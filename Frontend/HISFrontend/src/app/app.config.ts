@@ -11,10 +11,12 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { appointmentReducer } from './store/appointment/appointments.reducer';
 import { doctorReducer } from './store/doctor/doctor.reducer';
 import { notesReducer } from './store/note/notes.reducer';
+import { patientReducer } from './store/patient/patient.reducer'; 
+
 import { AppointmentEffects } from './store/appointment/appointments.effects';
 import { DoctorEffects } from './store/doctor/doctor.effects';
 import { NoteEffects } from './store/note/notes.effects';
-
+import { PatientEffects } from './store/patient/patient.effects';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,14 +30,16 @@ export const appConfig: ApplicationConfig = {
       appointments: appointmentReducer,
       doctor: doctorReducer,
       notes: notesReducer,
-
+      patients: patientReducer
     }),
     
     // Register effects
     provideEffects([
       AppointmentEffects,
       DoctorEffects,
-      NoteEffects
+      NoteEffects,
+      PatientEffects
+
     
     ]),
     

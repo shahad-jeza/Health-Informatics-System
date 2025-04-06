@@ -12,7 +12,8 @@ import { PatientSummaryComponent } from '../../notes/patient-summary/patient-sum
 import { AppointmentService } from '../../../services/appointments/appointment.service';
 import { NoteService } from '../../../services/notes/note.service';
 import { MedicalHistoryService } from '../../../services/medicalHistory/medical-history.service';
-import { AdminService, PatientDto } from '../../../services/admin/admin.service';
+import { PatientService } from '../../../services/patient/patient.service'; 
+import { Patient } from '../../../models/patient.model'; 
 
 // Model imports
 import { Appointment } from '../../../models/appointment.model';
@@ -60,7 +61,7 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
   // Patient data
   patientOptions: PatientOption[] = [];
   selectedPatientId: string | null = null;
-  private patients = new Map<string, PatientDto>();
+  private patients = new Map<string, Patient>();
   private patientNameCache = new Map<string, string>();
   
   // Appointment data
@@ -93,7 +94,7 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
     private appointmentService: AppointmentService,
     private noteService: NoteService,
     private medicalHistoryService: MedicalHistoryService,
-    private adminService: AdminService
+    private patientService: PatientService
   ) {}
   
   ngOnInit(): void {
@@ -114,9 +115,9 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
   }
   
   private loadPatientData(): void {
-    this.adminService.getSummary().subscribe({
-      next: (summary) => {
-        summary.patients.forEach(patient => {
+    this.patientService.getAllPatients().subscribe({
+      next: (patients) => {
+        patients.forEach(patient => {
           this.patients.set(patient.userId, patient);
         });
         
@@ -210,10 +211,12 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
   getPatientName(patientId: string | null): string {
     if (!patientId) return 'No patient assigned';
     
+    // Check cache first for performance
     if (this.patientNameCache.has(patientId)) {
       return this.patientNameCache.get(patientId)!;
     }
     
+    // Try to get from our local patients map
     const patient = this.patients.get(patientId);
     if (patient) {
       const fullName = `${patient.firstName} ${patient.lastName}`;
@@ -221,6 +224,15 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
       return fullName;
     }
     
+    // Use the service to get the name if not in our map (this is async)
+    this.patientService.getPatientName(patientId).subscribe(name => {
+      this.patientNameCache.set(patientId, name);
+      // Force refresh to update UI with this name
+      this.refreshPatientOptions();
+      this.refreshAppointmentOptions();
+    });
+    
+    // Return a temporary placeholder while async call completes
     const idBasedName = `Patient ${patientId.substring(0, 8)}`;
     this.patientNameCache.set(patientId, idBasedName);
     return idBasedName;

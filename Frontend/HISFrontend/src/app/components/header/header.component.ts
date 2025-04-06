@@ -12,10 +12,7 @@ import { RouterModule } from '@angular/router';
 export class HeaderComponent {
   navItems = [
     { name: 'Home', path: '/home' },
-    { name: 'Services', path: '/services' },
-    { name: 'About', path: '/about' },
-    { name: 'Contact Us', path: '/contact-us' }
-
+    { name: 'Login', path: '/login' },
 
   ];
 }

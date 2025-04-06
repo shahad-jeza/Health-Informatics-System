@@ -174,3 +174,18 @@
   padding: 0;
   line-height: 1;
 }
+.equal-height-row app-appointment {
+  width: 100%;
+}
+
+.equal-height-row app-doctor-appointments {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .equal-height-row app-doctor-appointments .card {
+  width: 100%;
+  height: 100% !important;
+  margin: 0 !important; 
+}
