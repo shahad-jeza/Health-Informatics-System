@@ -12,7 +12,5 @@ import { PatientSummaryComponent } from '../../notes/patient-summary/patient-sum
   styleUrls: ['./patient-dashboard.component.css'],
 })
 export class PatientDashboardComponent {
-  logout() {
-    console.log('User logged out');
-  }
+
 }

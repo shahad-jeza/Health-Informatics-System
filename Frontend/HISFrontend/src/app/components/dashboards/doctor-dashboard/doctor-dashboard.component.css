@@ -104,15 +104,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Logout button */
-.btn-outline-danger {
-  margin-top: 78px;
-}
-
-.btn-outline-danger.bg-white:hover {
-  background-color: #dc3545 !important;
-  color: white !important;
-}
 
 /* ================ MODAL STYLES ================ */
 

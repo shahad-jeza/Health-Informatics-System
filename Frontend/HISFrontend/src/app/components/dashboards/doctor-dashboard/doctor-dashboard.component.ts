@@ -467,7 +467,4 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
   }
   
-  logout() {
-    console.log('User logged out');
-  }
 }
