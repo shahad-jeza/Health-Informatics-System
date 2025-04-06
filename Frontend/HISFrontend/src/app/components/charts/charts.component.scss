@@ -1,0 +1,52 @@
+
+.charts-container {
+  height: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+} 
+ 
+
+  .chart-row {
+    display: flex;
+    height: 100%;
+    gap: 20px;
+  }
+
+  
+
+  .chart-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    
+    h4 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #333;
+    }
+  } 
+
+  .chart-wrapper {
+    flex: 1;
+    position: relative;
+    
+    canvas {
+      width: 80% !important;
+      height: 85% !important;
+    }
+  }
+
+  /* Responsive adjustments */
+
+  
+  @media (max-width: 1200px) {
+    .chart-row {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .chart-card {
+      height: 50%;
+    }
+  } 

@@ -1,0 +1,39 @@
+<div class="middle-section">
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="statistics && !loading" class="charts-container">
+    <!-- Combined Chart Row -->
+    <div class="chart-row">
+      <!-- Appointment Status Chart -->
+      <div class="chart-card">
+        <div class="chart-wrapper">
+          <canvas baseChart
+            [data]="statusChartData"
+            [type]="statusChartType"
+            [options]="statusChartOptions">
+          </canvas>
+        </div>
+      </div>
+      
+      <!-- Popular Specialties Chart -->
+      <div class="chart-card">
+        <div class="chart-wrapper">
+          <canvas baseChart
+            [data]="specialtiesChartData"
+            [type]="specialtiesChartType"
+            [options]="specialtiesChartOptions">
+          </canvas>
+        </div>
+      </div>
+    
+    </div>
+  </div>
+</div>
