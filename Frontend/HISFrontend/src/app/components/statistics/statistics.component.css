@@ -1,0 +1,83 @@
+.widget-container {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 20px;
+  
+  .widget {
+    flex: 1;
+    min-width: 250px;
+    max-width: 300px;
+    height: 150px;
+    background-color: #fff;
+    color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    transition: transform 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+    }
+    
+    &.green {
+      background-color: #70D0B1;
+    }
+    &.yellow {
+      background-color: #65B4E5;
+    }
+    &.red {
+      background-color: #59A78E;
+    }
+    &.blue {
+      background-color: #5399C5;
+    }
+    
+    .icon {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20px;
+      
+      svg {
+        width: 50px;
+        height: 50px;
+        fill: rgba(255, 255, 255, 0.8);
+      }
+    }
+    
+    .value {
+      text-align: left;
+      flex: 1;
+      
+      .top {
+        font-size: 20px;
+        font-weight: 500;
+        margin-bottom: 10px;
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      .bottom {
+        font-size: 30px;
+        font-weight: 700;
+        color: white;
+      }
+    }
+  }
+  
+  @media (max-width: 1200px) {
+    .widget {
+      min-width: 200px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .widget {
+      min-width: 100%;
+    }
+  }
+}

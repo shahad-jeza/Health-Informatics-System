@@ -1,0 +1,63 @@
+<div class="container">
+  <!-- Heading    -->
+  <h2>Create New Appointment</h2>
+
+  <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" class="compact-form">
+    
+    <div class="form-row">
+      
+      <!-- Doctor selection dropdown -->
+      <div class="form-group">
+        <label for="doctor">Assign Doctor</label>
+        <select id="doctor" class="form-control" formControlName="doctorUserId"
+          [class.is-invalid]="doctorUserId?.invalid && (doctorUserId?.dirty || doctorUserId?.touched)">
+          <option value="" disabled selected>Select a doctor</option>
+          <!-- Dynamically populate the doctor list -->
+          <option *ngFor="let doctor of doctors$ | async" [value]="doctor.userId">
+            {{ doctor.firstName }} {{ doctor.lastName }} - {{ doctor.specialty }}
+          </option>
+        </select>
+
+        <!-- Error message if doctor is not selected -->
+        <div *ngIf="doctorUserId?.invalid && (doctorUserId?.dirty || doctorUserId?.touched)" class="invalid-feedback">
+          Doctor is required
+        </div>
+      </div>
+
+      <!-- Date selection input -->
+      <div class="form-group">
+        <label for="date">Select a Date</label>
+        <input type="datetime-local" id="date" class="form-control" formControlName="date"
+          [class.is-invalid]="date?.invalid && (date?.dirty || date?.touched)">
+        <!-- Error message if date is not selected -->
+        <div *ngIf="date?.invalid && (date?.dirty || date?.touched)" class="invalid-feedback">
+          Date is required
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <!-- Submit button, disabled if form is invalid or appointment is being created -->
+      <button type="submit" class="btn btn-primary" 
+        [disabled]="appointmentForm.invalid || (creating$ | async)">
+        <span *ngIf="!(creating$ | async)">Create</span>
+        <span *ngIf="creating$ | async">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Creating...
+        </span>
+      </button>
+
+      <!-- Display error message if the appointment creation fails -->
+      <div *ngIf="error$ | async as error" class="alert alert-danger">
+        Error: {{ error.message || error }}
+      </div>
+
+      <!-- Show success message when the appointment is created -->
+      <div *ngIf="created$ | async" class="alert alert-success">
+        Appointment created successfully!
+      </div>
+    </div>
+    
+  </form>
+</div>

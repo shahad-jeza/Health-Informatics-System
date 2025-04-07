@@ -17,6 +17,14 @@ import { AppointmentEffects } from './store/appointment/appointments.effects';
 import { DoctorEffects } from './store/doctor/doctor.effects';
 import { NoteEffects } from './store/note/notes.effects';
 import { PatientEffects } from './store/patient/patient.effects';
+import { addAppointmentReducer } from './store/add-appointment/add-appointment.reducer';
+import { summaryReducer } from './store/summery/summary.reducer';
+import { statisticsReducer } from './store/statistics/statistics.reducer';
+import { addAppointmentEffects } from './store/add-appointment/add-appointment.effects';
+import { SummaryEffects } from './store/summery/summary.effects';
+import { StatisticsEffects } from './store/statistics/statistics.effects';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,13 +32,19 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withFetch()),
     provideClientHydration(withEventReplay()),
+    provideCharts(withDefaultRegisterables()),
+
+
     
     // Register NgRx store
     provideStore({
       appointments: appointmentReducer,
       doctor: doctorReducer,
       notes: notesReducer,
-      patients: patientReducer
+      patients: patientReducer,
+      appointment: addAppointmentReducer,
+      summary: summaryReducer,
+      statistics: statisticsReducer
     }),
     
     // Register effects
@@ -38,7 +52,10 @@ export const appConfig: ApplicationConfig = {
       AppointmentEffects,
       DoctorEffects,
       NoteEffects,
-      PatientEffects
+      PatientEffects,
+      addAppointmentEffects,
+      SummaryEffects,
+      StatisticsEffects,
 
     
     ]),
@@ -49,6 +66,6 @@ export const appConfig: ApplicationConfig = {
       autoPause: true,
       trace: false,
       traceLimit: 75,
-    })
+    }), provideCharts(withDefaultRegisterables())
   ]
 };
