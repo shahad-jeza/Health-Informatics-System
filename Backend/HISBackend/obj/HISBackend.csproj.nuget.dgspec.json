@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {}
+    "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {}
   },
   "projects": {
-    "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {
+    "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
+        "projectUniqueName": "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
         "projectName": "HISBackend",
-        "projectPath": "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
+        "projectPath": "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
         "packagesPath": "/Users/shahadjeza/.nuget/packages/",
-        "outputPath": "/Users/shahadjeza/Documents/ELM_training/Health-Informatics-System/Backend/HISBackend/obj/",
+        "outputPath": "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/shahadjeza/.nuget/NuGet/NuGet.Config"

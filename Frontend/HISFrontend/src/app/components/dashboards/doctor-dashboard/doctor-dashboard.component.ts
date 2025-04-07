@@ -1,5 +1,5 @@
 // Core Angular imports
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy ,inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
 import { Subscription } from 'rxjs';
@@ -19,6 +19,8 @@ import { Patient } from '../../../models/patient.model';
 import { Appointment } from '../../../models/appointment.model';
 import { CreateNoteDto } from '../../../services/notes/note.service';
 import { MedicalRecord } from '../../../models/medical-record.model';
+import { AuthService } from '../../../services/auth/auth.service';
+import { Router } from '@angular/router';
 
 // Define interfaces for component use
 interface PatientOption {
@@ -46,9 +48,10 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
   //===========================
   // PROPERTIES
   //===========================
+
+  doctorId: string = '';
   
-  // User information
-  doctorId = '11111111-1111-1111-1111-111111111111';
+
   
   // UI state management
   isEditModalOpen: boolean = false;
@@ -86,6 +89,7 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
   
   // Subscription management
   private subscriptions: Subscription[] = [];
+
   
   //===========================
   // LIFECYCLE HOOKS
@@ -94,10 +98,18 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
     private appointmentService: AppointmentService,
     private noteService: NoteService,
     private medicalHistoryService: MedicalHistoryService,
-    private patientService: PatientService
+    private patientService: PatientService,
+    private authService :AuthService,
+    private router :Router,
   ) {}
   
   ngOnInit(): void {
+    const id = this.authService.getCurrentUserId();
+    if (!id) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.doctorId = id; // Now guaranteed to be string
     this.loadData();
   }
   

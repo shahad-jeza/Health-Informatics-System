@@ -37,7 +37,7 @@ namespace HISBackend.Controllers
             }
 
             // Generate Token 
-            var token = GenerateJwtToken(user.Email, user.Role.ToString());
+            var token = GenerateJwtToken(user.Email, user.Role.ToString(), user.UserId.ToString());
             return Ok(new { token });
 
         }
@@ -52,7 +52,7 @@ namespace HISBackend.Controllers
 
 
         // Generate token method 
-        private string GenerateJwtToken(string email, string role)
+        private string GenerateJwtToken(string email, string role, string userId)
         {
             var jwtSettings = _config.GetSection("JwtSettings");
             var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
@@ -60,7 +60,8 @@ namespace HISBackend.Controllers
             var claims = new List<Claim>()
             {
                 new Claim(JwtRegisteredClaimNames.Sub, email),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role),
+                new Claim("Uuid", userId)
             };
 
             var key = new SymmetricSecurityKey(secretKey);

@@ -50,7 +50,7 @@ namespace HISBackend.Controllers
         /// Creates a new note for an appointment
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "Doctor")]
+        //[Authorize(Roles = "Doctor")]
         public async Task<ActionResult<NoteDto>> CreateNote([FromBody] NoteCreateDto createDto)
         {
             if (!ModelState.IsValid)

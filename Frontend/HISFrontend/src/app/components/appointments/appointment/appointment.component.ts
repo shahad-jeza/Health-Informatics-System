@@ -13,6 +13,7 @@ import * as NoteSelectors from '../../../store/note/notes.selectors';
 import * as AppointmentActions from '../../../store/appointment/appointments.actions';
 import * as AppointmentSelectors from '../../../store/appointment/appointments.selectors';
 import { Note } from '../../../store/note/notes.state';
+import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
   selector: 'app-appointments',
@@ -35,8 +36,7 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   loading = true;  
   error: string | null = null;
   
-  // Patient ID (mocked for now)
-  patientUserId = '33333333-3333-3333-3333-333333333333';
+
   
   // Cached doctor map for performance
   doctorMap: Map<string, Doctor> = new Map();
@@ -80,15 +80,24 @@ export class AppointmentComponent implements OnInit, OnDestroy {
 
   constructor(
     private store: Store,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private authService:AuthService
   ) {
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.appointments$ = this.store.select(AppointmentSelectors.selectAllAppointments);
     this.appointmentsLoading$ = this.store.select(AppointmentSelectors.selectAppointmentsLoading);
     this.appointmentsError$ = this.store.select(AppointmentSelectors.selectAppointmentsError);
+
   }
+  private patientUserId: string = '';
 
   ngOnInit(): void {
+    this.patientUserId = this.authService.getCurrentUserId() || '';
+  
+    if (!this.patientUserId) {
+      this.error = 'No patient ID available';
+      return;
+    }
     this.store.dispatch(DoctorActions.loadDoctors());
     
     setTimeout(() => {

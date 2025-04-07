@@ -23,6 +23,7 @@ import { Patient } from '../../../models/patient.model';
 import { AppointmentService } from '../../../services/appointments/appointment.service';
 import { MedicalHistoryService } from '../../../services/medicalHistory/medical-history.service';
 import { PatientService } from '../../../services/patient/patient.service';
+import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
   selector: 'app-doctor-appointments',
@@ -35,7 +36,7 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
   // ===== INPUTS =====
   @Input() title: string = 'Appointments';
   @Input() appointmentType: 'upcoming' | 'past' = 'upcoming';
-  @Input() doctorId: string = '11111111-1111-1111-1111-111111111111';
+  @Input() doctorId?: string;
   @Input() refreshTimestamp: number = 0;
   
   // ===== UI STATE =====
@@ -70,7 +71,8 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
     private medicalHistoryService: MedicalHistoryService,
     private patientService: PatientService,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private authService:AuthService,
   ) {
     // Initialize store selectors
     this.appointments$ = this.store.select(AppointmentSelectors.selectAllAppointments);
@@ -79,10 +81,19 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.patients$ = this.store.select(PatientSelectors.selectAllPatients);
   }
+
   
   // ===== LIFECYCLE HOOKS =====
   
   ngOnInit(): void {
+
+  // Use passed ID or fallback to auth service
+  this.doctorId = this.doctorId || this.authService.getCurrentUserId() || '';
+  
+  if (!this.doctorId) {
+    this.error = 'No doctor ID available';
+    return;
+  }
     this.loading = true;
     this.appointments = [];
     this.filteredAppointments = [];

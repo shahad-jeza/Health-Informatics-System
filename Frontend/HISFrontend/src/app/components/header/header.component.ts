@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
 })
 export class HeaderComponent {
   navItems = [
-    { name: 'Home', path: '/home' },
+    { name: 'Home', path: '/' },
     { name: 'Login', path: '/login' },
 
   ];
