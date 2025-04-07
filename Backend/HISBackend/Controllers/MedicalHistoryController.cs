@@ -25,7 +25,7 @@ namespace HISBackend.Controllers
         /// </summary>
         /// <param name="patientUserId">GUID of the patient (User.UserId)</param>
         [HttpGet("{patientUserId}")]
-        //[Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<MedicalHistoryDto>> GetMedicalHistory(Guid patientUserId)
         {
             var medicalHistory = await _context.MedicalHistories
@@ -54,7 +54,7 @@ namespace HISBackend.Controllers
         /// </summary>
         /// <param name="patientUserId">GUID of the patient (User.UserId)</param>
         [HttpPut("{patientUserId}")]
-        //[Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> UpdateMedicalHistory(Guid patientUserId, [FromBody] MedicalHistoryUpdateDto updateDto)
         {
             if (!ModelState.IsValid)

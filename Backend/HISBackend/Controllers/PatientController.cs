@@ -25,7 +25,7 @@ namespace HISBackend.Controllers
         /// Retrieves all patients with their details
         /// </summary>
         [HttpGet]
-        //[Authorize(Roles = "Admin,Doctor")] // Both Admin and Doctor can access
+        [Authorize(Roles = "Admin,Doctor")] // Both Admin and Doctor can access
         public async Task<ActionResult<IEnumerable<PatientDto>>> GetAllPatients()
         {
             var patients = await _context.Users

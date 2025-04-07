@@ -27,7 +27,7 @@ namespace HISBackend.Controllers
         /// </summary>
 
         [HttpGet("summary")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AdminSummaryDto>> GetSummary()
         {
             var summary = new AdminSummaryDto
@@ -69,7 +69,7 @@ namespace HISBackend.Controllers
 
 
         [HttpGet("statistics")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AdminStatisticsDto>> GetStatistics()
         {
             var today = DateTime.Today;

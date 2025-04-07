@@ -89,7 +89,7 @@ namespace HISBackend.Controllers
 
         // POST: api/appointment
         [HttpPost]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<AppointmentDto>> CreateAppointment([FromBody] AppointmentCreateDto createDto)
         {
             if (!ModelState.IsValid)
