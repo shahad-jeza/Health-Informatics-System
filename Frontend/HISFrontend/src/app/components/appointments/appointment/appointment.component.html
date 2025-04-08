@@ -34,7 +34,7 @@
         <div class="d-flex justify-content-between align-items-center">
           <!-- Appointment details -->
           <div class="d-flex align-items-center">
-            <p class="fw-bold mb-1 ms-2">{{ getDoctorName(appointment.doctorUserId) }}</p>
+            <p class="fw-bold mb-1 ms-2">{{ getDoctorName(appointment) }}</p>
             <p class="mb-0 text-muted">
               <i class="bi bi-calendar ms-2"></i> {{ formatDate(appointment.date) }}
               <span *ngIf="appointment.time"> at {{ appointment.time }}</span>
@@ -86,7 +86,7 @@
       <!-- Appointment details -->
       <div *ngIf="appointmentToCancel" class="note-card">
         <div class="note-card-body">
-          <p><strong>Doctor:</strong> {{ getDoctorName(appointmentToCancel.doctorUserId) }}</p>
+          <p><strong>Doctor:</strong> {{ getDoctorName(appointmentToCancel) }}</p>
           <p><strong>Date:</strong> {{ formatDate(appointmentToCancel.date) }}
              <span *ngIf="appointmentToCancel.time"> at {{ appointmentToCancel.time }}</span>
           </p>

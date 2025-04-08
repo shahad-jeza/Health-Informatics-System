@@ -64,3 +64,19 @@ export const getAppointmentsByPatientFailure = createAction(
   '[Appointments] Get Appointments By Patient Failure',
   props<{ error: string }>()
 );
+
+// Get Doctor Details Actions
+export const getDoctorById = createAction(
+  '[Appointments] Get Doctor By Id',
+  props<{ doctorId: string }>()
+);
+
+export const getDoctorByIdSuccess = createAction(
+  '[Appointments] Get Doctor By Id Success',
+  props<{ doctor: any, doctorId: string }>()
+);
+
+export const getDoctorByIdFailure = createAction(
+  '[Appointments] Get Doctor By Id Failure',
+  props<{ error: string, doctorId: string }>()
+);

@@ -6,7 +6,6 @@ import { Observable, Subscription } from 'rxjs';
 
 // NgRx Store imports
 import { Store } from '@ngrx/store';
-import * as DoctorActions from '../../../store/doctor/doctor.actions';
 import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 import * as AppointmentActions from '../../../store/appointment/appointments.actions';
 import * as AppointmentSelectors from '../../../store/appointment/appointments.selectors';
@@ -53,7 +52,7 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
   appointments$: Observable<Appointment[]>;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
-  doctors$: Observable<Doctor[]>;
+  doctors$: Observable<Doctor[]> = new Observable<Doctor[]>();
   patients$: Observable<Patient[]>;
   
   // ===== DATA CACHES =====
@@ -78,8 +77,8 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
     this.appointments$ = this.store.select(AppointmentSelectors.selectAllAppointments);
     this.loading$ = this.store.select(AppointmentSelectors.selectAppointmentsLoading);
     this.error$ = this.store.select(AppointmentSelectors.selectAppointmentsError);
-    this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.patients$ = this.store.select(PatientSelectors.selectAllPatients);
+    
   }
 
   
@@ -99,7 +98,6 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
     this.filteredAppointments = [];
     
     // Load doctors from store
-    this.store.dispatch(DoctorActions.loadDoctors());
     
     // Load patients from store
     this.store.dispatch(PatientActions.loadPatients());
@@ -160,27 +158,37 @@ export class DoctorAppointmentsComponent implements OnInit, OnChanges, OnDestroy
   /**
    * Sets up subscription handlers for store data
    */
-  private setupSubscriptions(): void {
-    // Subscribe to doctors data
-    this.subscriptions.push(
-      this.doctors$.subscribe(doctors => {
-        this.doctorMap.clear();
-        doctors.forEach(doctor => {
-          if (doctor.userId) this.doctorMap.set(doctor.userId, doctor);
-          if (doctor.id) this.doctorMap.set(doctor.id.toString(), doctor);
-        });
-      })
-    );
+// In the setupSubscriptions method:
+private setupSubscriptions(): void {
+  // Remove the doctors$ subscription that's causing the 403 error
+  this.subscriptions.push(
+    // Instead of subscribing to doctors$, extract doctor info from appointments
+    this.appointments$.subscribe(appointments => {
+      appointments.forEach(appointment => {
+        if (appointment.doctorUserId && appointment.doctorName) {
+          const nameParts = appointment.doctorName.split(' ');
+          const doctor: Doctor = {
+            userId: appointment.doctorUserId,
+            firstName: nameParts[0] || '',
+            lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : '',
+            specialty: '', // Remove the property that doesn't exist on Appointment
+            id: 0,
+            email: '' // Add missing email property required by Doctor type
+          };
+          
+          this.doctorMap.set(appointment.doctorUserId, doctor);
+        }
+      });
+    }),
     
-    // Add other store subscriptions
-    this.subscriptions.push(
-      this.appointments$.subscribe(),
-      this.loading$.subscribe(),
-      this.error$.subscribe(error => {
-        if (error) console.error(`Store error: ${error}`);
-      })
-    );
-  }
+    // Keep other store subscriptions
+    this.appointments$.subscribe(),
+    this.loading$.subscribe(),
+    this.error$.subscribe(error => {
+      if (error) console.error(`Store error: ${error}`);
+    })
+  );
+}
   
   /**
    * Loads appointments for the specified doctor

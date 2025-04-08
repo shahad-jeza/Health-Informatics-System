@@ -50,12 +50,10 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.doctorsLoading$ = this.store.select(DoctorSelectors.selectDoctorsLoading);
     this.doctorsError$ = this.store.select(DoctorSelectors.selectDoctorsError);
-    
-
   }
   private patientUserId: string = '';
   ngOnInit(): void {
-      // Get dynamic ID first
+
   this.patientUserId = this.authService.getCurrentUserId() || '';
   
   if (!this.patientUserId) {
@@ -114,8 +112,8 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
   getFormattedAppointmentText(apt: Appointment): string {
     if (!apt) return 'Invalid appointment';
     
-    // Extract doctor name using doctorUserId
-    let doctorName = 'Unknown Doctor';
+    // Use doctorName directly from the appointment if available
+    let doctorName = apt.doctorName || 'Unknown Doctor';
     
     // Format date from the ISO string
     let dateStr = 'TBD';
@@ -133,13 +131,12 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
       }
     }
     
-    // Find doctor name from the store
-    const doctorId = apt.doctorUserId;
-    if (doctorId) {
+    // If no doctorName is available in the appointment object, try to get it from store
+    if (doctorName === 'Unknown Doctor' && apt.doctorUserId) {
       this.doctors$.pipe(
         take(1) // Take just once to avoid memory leaks
       ).subscribe(doctors => {
-        const doctor = doctors.find(d => d.userId === doctorId);
+        const doctor = doctors.find(d => d.userId === apt.doctorUserId);
         if (doctor) {
           doctorName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
         }
@@ -160,9 +157,6 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     this.error = null;
     this.success = null;
     
-
-    
-    // Payload with the required fields
     const payload = {
       PatientUserId: this.patientUserId,
       Status: 1
@@ -170,27 +164,17 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     
     this.appointmentService.updateAppointment(this.selectedAppointmentId, payload)
       .subscribe({
-        next: (result) => {
+        next: () => {
           this.loading = false;
           this.success = 'Appointment booked successfully!';
-          
-          // Remove the booked appointment from the list
           this.availableAppointments = this.availableAppointments.filter(
             apt => apt.appointmentId !== this.selectedAppointmentId
           );
           this.selectedAppointmentId = '';
         },
         error: (err) => {
-          // Error message handling
-          let errorMsg = 'Unknown error';
-          if (err.error && typeof err.error === 'string') {
-            errorMsg = err.error;
-          } else if (err.message) {
-            errorMsg = err.message;
-          }
-          
           this.loading = false;
-          this.error = `Failed to book appointment: ${errorMsg}`;
+          this.error = `Failed to book appointment: ${err.error || err.message || 'Unknown error'}`;
         }
       });
   }
