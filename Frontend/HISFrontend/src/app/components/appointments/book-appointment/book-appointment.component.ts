@@ -11,6 +11,7 @@ import { AppointmentService } from '../../../services/appointments/appointment.s
 import * as DoctorActions from '../../../store/doctor/doctor.actions';
 import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 import { AuthService } from '../../../services/auth/auth.service';
+import { NotificationService } from '../../../services/notifications/notification.service';
 
 @Component({
   selector: 'app-book-appointment',
@@ -45,7 +46,9 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
   constructor(
     private store: Store,
     private appointmentService: AppointmentService,
-    private authService :AuthService
+    private authService :AuthService,
+    private notificationService: NotificationService
+
   ) {
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.doctorsLoading$ = this.store.select(DoctorSelectors.selectDoctorsLoading);
@@ -173,6 +176,15 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
         next: (result) => {
           this.loading = false;
           this.success = 'Appointment booked successfully!';
+
+
+          
+        // Show notification
+        this.notificationService.showNotification('Appointment Booked', {
+          body: `Your appointment has been successfully booked!`,
+          icon: 'assets/HIS-Health-report.png'
+        });
+            
           
           // Remove the booked appointment from the list
           this.availableAppointments = this.availableAppointments.filter(
