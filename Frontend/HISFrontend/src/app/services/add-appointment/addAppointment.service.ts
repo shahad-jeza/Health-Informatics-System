@@ -7,7 +7,7 @@ import { AppointmentCreate } from '../../models/addAppointment.model';
   providedIn: 'root'
 })
 export class AddAppointmentService {
-  private apiUrl = `https://localhost:44313/api/Appointment`; //todo
+  private apiUrl = `http://localhost:5219/api/Appointment`; 
 
   constructor(private http: HttpClient) { }
   //post request to create an appointment

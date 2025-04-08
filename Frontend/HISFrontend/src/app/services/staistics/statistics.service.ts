@@ -6,7 +6,7 @@ import { AdminStatistics } from '../../models/statistics.model';
   providedIn: 'root'
 })
 export class StatisticsService {
-  private apiUrl = 'https://localhost:44313/api/Admin/statistics'; 
+  private apiUrl = 'http://localhost:5219/api/Admin/statistics'; 
 
   constructor(private http: HttpClient) { }
 

@@ -10,6 +10,7 @@ import { AppointmentService } from '../../../services/appointments/appointment.s
 
 import * as DoctorActions from '../../../store/doctor/doctor.actions';
 import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
+import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
   selector: 'app-book-appointment',
@@ -43,7 +44,8 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
 
   constructor(
     private store: Store,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private authService :AuthService
   ) {
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.doctorsLoading$ = this.store.select(DoctorSelectors.selectDoctorsLoading);
@@ -51,8 +53,16 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     
 
   }
-  
+  private patientUserId: string = '';
   ngOnInit(): void {
+      // Get dynamic ID first
+  this.patientUserId = this.authService.getCurrentUserId() || '';
+  
+  if (!this.patientUserId) {
+    this.error = 'No patient ID available';
+    return;
+  }
+
     // Load doctors from store
     this.store.dispatch(DoctorActions.loadDoctors()); 
     
@@ -150,12 +160,11 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     this.error = null;
     this.success = null;
     
-    // Patient user ID (mock)
-    const patientUserId = "33333333-3333-3333-3333-333333333333";
+
     
     // Payload with the required fields
     const payload = {
-      PatientUserId: patientUserId,
+      PatientUserId: this.patientUserId,
       Status: 1
     };
     

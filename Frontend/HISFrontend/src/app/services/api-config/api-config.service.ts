@@ -10,7 +10,7 @@ export class ApiConfigService {
 
   constructor() {
     // Set the API URL from environment
-    this._apiUrl = environment.apiUrl || 'https://localhost:44313/api';
+    this._apiUrl = environment.apiUrl || 'http://localhost:5219/api';
   }
 
   get apiUrl(): string {
