@@ -1,0 +1,26 @@
+services:
+  # Backend Service (.NET WebAPI)
+  - type: web
+    name: his-backend
+    runtime: dotnet
+    buildCommand: cd ./backend/HISBackend && dotnet publish -c Release -o ./publish
+    startCommand: cd ./backend/HISBackend && dotnet ./publish/HISBackend.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://*:5000
+    disk:
+      name: his-data
+      mountPath: /var/data
+      sizeGB: 1
+
+  # Frontend Service (Angular)
+  - type: web
+    name: his-frontend
+    runtime: static
+    buildCommand: cd ./frontend/HISFrontend && npm install && npm run build -- --configuration production
+    staticPublishPath: ./frontend/HISFrontend/dist/HISFrontend
+    envVars:
+      - key: API_URL
+        value: https://his-backend.onrender.com
