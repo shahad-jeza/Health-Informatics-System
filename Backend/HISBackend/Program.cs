@@ -7,7 +7,7 @@ using Microsoft.OpenApi.Models;
 using Bugsnag.AspNet.Core;
 using Bugsnag;
 using Microsoft.AspNetCore.Diagnostics;
-
+using HISBackend.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +62,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Register ISmsService and SmsService
+builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("TwilioSettings"));
+builder.Services.AddScoped<ISmsService, SmsService>();
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
