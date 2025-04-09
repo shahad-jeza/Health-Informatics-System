@@ -79,23 +79,6 @@ export class AppointmentEffects {
     })
   ));
 
-  // Create appointment 
-  createAppointment$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AppointmentActions.createAppointment),
-      mergeMap(({ appointment }) =>
-        this.appointmentService.createAppointment(appointment).pipe(
-          map(createdAppointment => {
-            return AppointmentActions.createAppointmentSuccess({ appointment: createdAppointment });
-          }),
-          catchError(error => {
-            console.error("Error creating appointment in effects:", error);
-            return of(AppointmentActions.createAppointmentFailure({ error: error.message }));
-          })
-        )
-      )
-    )
-  );
 
   constructor(
     private actions$: Actions,

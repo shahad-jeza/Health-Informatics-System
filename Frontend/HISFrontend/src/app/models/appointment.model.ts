@@ -12,4 +12,5 @@ export interface Appointment {
   date: string; 
   time: string; 
   status: AppointmentStatus;
+  doctorName?: string;
 }

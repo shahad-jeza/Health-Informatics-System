@@ -51,8 +51,6 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
 
   doctorId: string = '';
   
-
-  
   // UI state management
   isEditModalOpen: boolean = false;
   loading: boolean = false;
@@ -90,7 +88,6 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
   // Subscription management
   private subscriptions: Subscription[] = [];
 
-  
   //===========================
   // LIFECYCLE HOOKS
   //===========================
@@ -178,44 +175,77 @@ export class DoctorDashboardComponent implements OnInit, OnDestroy {
       
     this.subscriptions.push(appointmentsSub);
   }
+
+loadAppointmentOptions(): void {
+  this.loading = true;
   
-  loadAppointmentOptions(): void {
-    this.loading = true;
-    
-    this.loadAllPatientNotes().then(() => {
-      const appointmentsSub = this.appointmentService.getDoctorAppointments(this.doctorId)
-        .subscribe({
-          next: (appointments) => {
-            this.appointmentOptions = appointments
-              .filter(appointment => 
-                appointment.patientUserId && 
-                !this.appointmentsWithNotes.has(appointment.appointmentId)
-              )
-              .map(appointment => {
-                const patientName = this.getPatientName(appointment.patientUserId!);
-                
-                return {
-                  appointmentId: appointment.appointmentId,
-                  patientUserId: appointment.patientUserId!,
-                  patientName: patientName,
-                  date: appointment.date,
-                  status: appointment.status,
-                  originalAppointment: appointment
-                };
-              });
-            
-            this.loading = false;
-          },
-          error: (err) => {
-            console.error('Error loading doctor appointments:', err);
-            this.error = 'Failed to load appointment list';
-            this.loading = false;
-          }
-        });
+  // get all appointments
+  this.appointmentService.getDoctorAppointments(this.doctorId)
+    .subscribe({
+      next: (appointments) => {
+        // Create map of all appointments
+        const allAppointments = appointments.filter(appointment => appointment.patientUserId)
+          .map(appointment => {
+            return {
+              appointmentId: appointment.appointmentId,
+              patientUserId: appointment.patientUserId!,
+              patientName: this.getPatientName(appointment.patientUserId!),
+              date: appointment.date,
+              status: appointment.status,
+              originalAppointment: appointment
+            };
+          });
         
-      this.subscriptions.push(appointmentsSub);
+        // Extract unique patient IDs
+        const patientIds = new Set<string>();
+        allAppointments.forEach(appt => patientIds.add(appt.patientUserId));
+        
+        // Track appointments with notes
+        this.appointmentsWithNotes = new Set<string>();
+        
+        // Create a counter to track when all notes are loaded
+        let patientsProcessed = 0;
+        const totalPatients = patientIds.size;
+        
+        // If no patients, finalize loading
+        if (totalPatients === 0) {
+          this.appointmentOptions = allAppointments;
+          this.loading = false;
+          return;
+        }
+        
+        // Process each patient's notes
+        patientIds.forEach(patientId => {
+          this.noteService.getNotesByPatientId(patientId).subscribe({
+            next: (notes) => {
+              // Mark appointments with notes
+              notes.forEach(note => {
+                if (note.appointmentId) {
+                  this.appointmentsWithNotes.add(note.appointmentId);
+                }
+              });
+            },
+            complete: () => {
+              patientsProcessed++;
+              
+              // Once all patients are processed, filter and update UI
+              if (patientsProcessed >= totalPatients) {
+                this.appointmentOptions = allAppointments.filter(
+                  appt => !this.appointmentsWithNotes.has(appt.appointmentId)
+                );
+                this.loading = false;
+              }
+            }
+          });
+        });
+      },
+      error: (err) => {
+        console.error('Error loading doctor appointments:', err);
+        this.error = 'Failed to load appointment list';
+        this.loading = false;
+      }
     });
-  }
+}
   
   //===========================
   // PATIENT DATA HELPERS

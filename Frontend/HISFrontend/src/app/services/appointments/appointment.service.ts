@@ -39,7 +39,6 @@ import { ApiConfigService } from '../api-config/api-config.service';
       // Include authentication headers and other HTTP options
       this.apiConfig.httpOptions
     ).pipe(
-      // Process the response data (currently just passing through)
       map(appointments => {
         return appointments;
       }),
@@ -49,62 +48,6 @@ import { ApiConfigService } from '../api-config/api-config.service';
         console.error(`[AppointmentService] Error fetching doctor appointments: ${error.message}`);
         // Return a new error with user-friendly message
         return throwError(() => new Error(`Failed to fetch doctor appointments: ${error.message}`));
-      })
-    );
-  }
-  // Create a new appointment
-  createAppointment(appointment: any): Observable<Appointment> {
-    // Step 1: Create the appointment
-    const createPayload = {
-      DoctorUserId: appointment.doctorUserId, 
-      Date: appointment.date,
-    };
-    
-    return this.http.post<any>(
-      this.apiConfig.getEndpoint('Appointment'),
-      createPayload,
-      this.apiConfig.httpOptions
-    ).pipe(
-      switchMap(createdAppointment => {
-        const appointmentId = createdAppointment.appointmentId;
-        const patientId = appointment.patientId || 3;
-        
-        // Step 2: Update with patient information
-        const updatePayload = {
-          updateDto: {
-            Status: 1, // Confirmed status
-            PatientUserId: String(patientId) 
-          }
-        };
-        
-        return this.http.put(
-          this.apiConfig.getEndpoint(`Appointment/${appointmentId}`),
-          updatePayload,
-          this.apiConfig.httpOptions
-        ).pipe(
-          map(response => {
-            const finalAppointment = {
-              ...createdAppointment,
-              status: AppointmentStatus.Confirmed,
-              patientId: patientId,
-              patientUserId: String(patientId)
-            };
-            
-            this.cacheAppointment(finalAppointment as Appointment);
-            return finalAppointment as Appointment;
-          }),
-          catchError(updateError => {
-            return of({
-              ...createdAppointment,
-              patientId: patientId,
-              patientUserId: String(patientId),
-              _updateFailed: true
-            } as Appointment);
-          })
-        );
-      }),
-      catchError(createError => {
-        return throwError(() => new Error(`Failed to create appointment: ${createError.message}`));
       })
     );
   }
@@ -134,29 +77,34 @@ import { ApiConfigService } from '../api-config/api-config.service';
     );
   }
 
-  // Cache appointment data in localStorage
-  private cacheAppointment(appointment: Appointment): void {
-    try {
-      const cachedAppointmentsJson = localStorage.getItem('cachedAppointments');
-      let cachedAppointments: Appointment[] = [];
-      
-      if (cachedAppointmentsJson) {
-        cachedAppointments = JSON.parse(cachedAppointmentsJson);
-      }
-      
-      const existingIndex = cachedAppointments.findIndex(a => a.appointmentId === appointment.appointmentId);
-      
-      if (existingIndex >= 0) {
-        cachedAppointments[existingIndex] = appointment;
-      } else {
-        cachedAppointments.push(appointment);
-      }
-      
-      // Save back to localStorage
-      localStorage.setItem('cachedAppointments', JSON.stringify(cachedAppointments));
-      localStorage.setItem(`appointment_${appointment.appointmentId}`, JSON.stringify(appointment));
-    } catch (e) {
-      // Silently fail if localStorage is unavailable
-    }
+  getDoctorById(doctorId: string): Observable<any> {
+    return this.http.get<any>(
+      this.apiConfig.getEndpoint(`Appointment/doctor/${doctorId}`),
+      this.apiConfig.httpOptions
+    ).pipe(
+      catchError(error => {
+        console.error(`[AppointmentService] Error fetching doctor details: ${error.message}`);
+        return throwError(() => new Error(`Failed to fetch doctor details: ${error.message}`));
+      })
+    );
   }
+  updateAppointmentStatus(appointmentId: string, status: AppointmentStatus): Observable<Appointment> {
+    const updatePayload = {
+      updateDto: {
+        Status: status
+      }
+    };
+    
+    return this.http.put<Appointment>(
+      this.apiConfig.getEndpoint(`Appointment/${appointmentId}`),
+      updatePayload,
+      this.apiConfig.httpOptions
+    ).pipe(
+      catchError(error => {
+        console.error(`[AppointmentService] Error updating appointment status: ${error.message}`);
+        return throwError(() => new Error(`Failed to update appointment status: ${error.message}`));
+      })
+    );
+  }
+
 }
