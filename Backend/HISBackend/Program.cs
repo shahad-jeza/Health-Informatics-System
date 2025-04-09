@@ -34,7 +34,7 @@ builder.Services.AddCors(options =>
                           .AllowAnyMethod()
                           .AllowAnyHeader());
 });
-app.UseCors("AllowAll");
+
 
 // Configure SQLite
 builder.Services.AddDbContext<MyAppDbContext>(options =>
@@ -141,6 +141,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.UseCors("AllowAngularApp");
+app.UseCors("AllowAll");
 
 app.Run();
 

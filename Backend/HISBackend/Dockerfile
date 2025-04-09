@@ -1,14 +1,25 @@
-# Build stage (uses nightly build for 9.0)
-FROM mcr.microsoft.com/dotnet/nightly/sdk:9.0 AS build
-WORKDIR /src
-COPY . .
-RUN dotnet restore
-RUN dotnet publish -c Release -o /app/publish
-
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/nightly/aspnet:9.0
+# Use the official .NET SDK image for building
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /app
-COPY --from=build /app/publish .
-ENV ASPNETCORE_URLS=http://*:5000
-EXPOSE 5000
+
+# Copy project and restore
+COPY . ./
+RUN dotnet restore
+RUN dotnet publish -c Release -o out
+
+# Use the ASP.NET runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+WORKDIR /app
+
+# Copy published app and SQLite DB
+COPY --from=build /app/out ./
+COPY database.sqlite ./
+
+# Expose port
+EXPOSE 80
+
+# Start the app
 ENTRYPOINT ["dotnet", "HISBackend.dll"]
+
+
+

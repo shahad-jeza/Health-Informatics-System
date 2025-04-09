@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {}
+    "/Users/shahadjeza/Desktop/Health-Informatics-System-1/Backend/HISBackend/HISBackend.csproj": {}
   },
   "projects": {
-    "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj": {
+    "/Users/shahadjeza/Desktop/Health-Informatics-System-1/Backend/HISBackend/HISBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
+        "projectUniqueName": "/Users/shahadjeza/Desktop/Health-Informatics-System-1/Backend/HISBackend/HISBackend.csproj",
         "projectName": "HISBackend",
-        "projectPath": "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/HISBackend.csproj",
+        "projectPath": "/Users/shahadjeza/Desktop/Health-Informatics-System-1/Backend/HISBackend/HISBackend.csproj",
         "packagesPath": "/Users/shahadjeza/.nuget/packages/",
-        "outputPath": "/Users/shahadjeza/Desktop/Health-Informatics-System/Backend/HISBackend/obj/",
+        "outputPath": "/Users/shahadjeza/Desktop/Health-Informatics-System-1/Backend/HISBackend/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/shahadjeza/.nuget/NuGet/NuGet.Config"
@@ -47,6 +47,10 @@
             "BCrypt.Net-Next": {
               "target": "Package",
               "version": "[4.0.3, )"
+            },
+            "Bugsnag.AspNet.Core": {
+              "target": "Package",
+              "version": "[4.0.0, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
@@ -91,6 +95,10 @@
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[8.7.0, )"
+            },
+            "Twilio": {
+              "target": "Package",
+              "version": "[7.9.1, )"
             }
           },
           "imports": [
