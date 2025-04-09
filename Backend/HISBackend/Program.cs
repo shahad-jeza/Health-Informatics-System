@@ -29,9 +29,12 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularApp",
+    options.AddPolicy("RenderPolicy",
     builder => builder
-            .WithOrigins("http://localhost:4200") 
+            .WithOrigins(
+            "http://localhost:4200",
+            "https://his-frontend.onrender.com",
+            ) 
             .AllowAnyHeader()
             .AllowAnyMethod());
 
@@ -137,6 +140,7 @@ app.UseExceptionHandler(exceptionHandlerApp =>
     });
 });
 app.UseHttpsRedirection();
+app.UseCors("RenderPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
