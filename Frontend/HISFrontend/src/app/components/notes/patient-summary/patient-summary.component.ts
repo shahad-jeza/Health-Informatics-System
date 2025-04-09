@@ -4,14 +4,12 @@ import { Store } from '@ngrx/store';
 import { Observable, Subscription, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Note } from '../../../store/note/notes.state';
-import { Doctor } from '../../../store/doctor/doctor.state';
 import { Appointment, AppointmentStatus } from '../../../models/appointment.model';
 import { AppointmentService } from '../../../services/appointments/appointment.service';
 import { MedicalHistoryService } from '../../../services/medicalHistory/medical-history.service';
-import * as DoctorActions from '../../../store/doctor/doctor.actions';
-import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 import * as NoteActions from '../../../store/note/notes.actions';
 import * as NoteSelectors from '../../../store/note/notes.selectors';
+import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
   selector: 'app-patient-summary',
@@ -24,16 +22,13 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
   // Constants
   AppointmentStatus = AppointmentStatus;
   
-  // Mock patient ID 
-  @Input() patientUserId = '33333333-3333-3333-3333-333333333333';
+  @Input() patientUserId = '';
   @Input() refreshTimestamp?: number;
+  
   // Store observables
   notes$: Observable<Note[]>;
-  doctors$: Observable<Doctor[]>;
   notesLoading$: Observable<boolean>;
   notesError$: Observable<string | null>;
-  doctorsLoading$: Observable<boolean>;
-  doctorsError$: Observable<string | null>;
   
   // Local state
   appointments: Appointment[] = [];
@@ -44,7 +39,6 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
   appointmentsLoading = false;
   
   // Caches for performance
-  doctorMap = new Map<string, Doctor>();
   appointmentMap = new Map<string, Appointment>();
   
   // Subscriptions management
@@ -53,22 +47,31 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
   constructor(
     private store: Store,
     private medicalHistoryService: MedicalHistoryService,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private authService :AuthService
   ) {
     // Initialize store observables
     this.notes$ = this.store.select(NoteSelectors.selectAllNotes);
     this.notesLoading$ = this.store.select(NoteSelectors.selectNotesLoading);
     this.notesError$ = this.store.select(NoteSelectors.selectNotesError);
-    
-    this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
-    this.doctorsLoading$ = this.store.select(DoctorSelectors.selectDoctorsLoading);
-    this.doctorsError$ = this.store.select(DoctorSelectors.selectDoctorsError);
   }
   
   // Lifecycle Hooks
   
   ngOnInit(): void {
     this.loadData();
+    if (!this.patientUserId) {
+      // If not provided, try to get it from the auth service
+      this.patientUserId = this.authService.getCurrentUserId() || '';
+    }
+    
+    // Only proceed if we have a valid patientUserId
+    if (this.patientUserId) {
+      this.loadData();
+    } else {
+      this.error = 'No patient ID available';
+      this.loading = false;
+    }
   }
   
   ngOnDestroy(): void {
@@ -86,30 +89,24 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
       this.loadPatientData();
     }
   }
+  
   // Data Loading Methods
 
   // Reload patient data
   loadPatientData(): void {
+    if (!this.patientUserId) return;
+    
     this.loadMedicalHistory();
     this.loadPatientAppointments();
   }
   
   loadData(): void {
-    // Load doctors from store
-    this.store.dispatch(DoctorActions.loadDoctors());
+    if (!this.patientUserId) return;
     
     // Load notes for patient
-    this.store.dispatch(NoteActions.loadNotesByPatient({ patientUserId: this.patientUserId }));
-    
-    // Subscribe to doctors to build the doctor map
-    const doctorsSub = this.doctors$.subscribe(doctors => {
-      // Build doctor map for efficient lookups
-      this.doctorMap.clear();
-      doctors.forEach(doctor => {
-        this.doctorMap.set(doctor.userId, doctor);
-      });
-    });
-    this.subscriptions.push(doctorsSub);
+    this.store.dispatch(NoteActions.loadNotesByPatient({ 
+      patientUserId: this.patientUserId 
+    }));
   
     // Load patient data
     this.loadMedicalHistory();
@@ -122,13 +119,6 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.push(noteErrorSub);
-    
-    const doctorErrorSub = this.doctorsError$.subscribe(error => {
-      if (error) {
-        this.error = `Failed to load doctors: ${error}`;
-      }
-    });
-    this.subscriptions.push(doctorErrorSub);
   }
   
   // Load appointments for the patient
@@ -162,9 +152,8 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
   // Load medical history 
   loadMedicalHistory(): void {
     this.medicalHistoryLoading = true;
-    const patientGuid = this.patientUserId; 
     
-    const medHistorySub = this.medicalHistoryService.getPatientHistory(patientGuid)
+    const medHistorySub = this.medicalHistoryService.getPatientHistory(this.patientUserId)
       .pipe(
         catchError(err => {
           this.error = `Failed to load medical history: ${err.message || 'Unknown error'}`;
@@ -190,26 +179,6 @@ export class PatientSummaryComponent implements OnInit, OnDestroy {
     if (!this.medicalHistoryLoading && !this.appointmentsLoading) {
       this.loading = false;
     }
-  }
-  
-  // Get doctor name from ID
-  getDoctorName(doctorId: string | undefined | null): string {
-    if (!doctorId) return 'Unknown Doctor';
-    
-    const doctorIdStr = String(doctorId);
-    const doctor = this.doctorMap.get(doctorIdStr);
-    
-    if (!doctor) {
-      return 'Unknown Doctor';
-    }
-    
-    if (doctor.firstName && doctor.lastName) {
-      return `Dr. ${doctor.firstName} ${doctor.lastName}`;
-    } else if (doctor.name) {
-      return doctor.name;
-    }
-    
-    return `Doctor (ID: ${doctorIdStr})`;
   }
   
   // Format Methods

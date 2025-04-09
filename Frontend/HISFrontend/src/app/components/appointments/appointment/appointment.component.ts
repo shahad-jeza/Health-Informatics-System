@@ -3,11 +3,8 @@ import { Appointment, AppointmentStatus } from '../../../models/appointment.mode
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
-import { Doctor } from '../../../store/doctor/doctor.state';
+import { Observable, Subscription} from 'rxjs';
 import { AppointmentService } from '../../../services/appointments/appointment.service';
-import * as DoctorActions from '../../../store/doctor/doctor.actions';
-import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 import * as NoteActions from '../../../store/note/notes.actions';
 import * as NoteSelectors from '../../../store/note/notes.selectors';
 import * as AppointmentActions from '../../../store/appointment/appointments.actions';
@@ -28,18 +25,12 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   
   // Data to display
   appointments: Appointment[] = [];
-  doctors$: Observable<Doctor[]>;
   private _allAppointments: Appointment[] = [];
   appointments$: Observable<Appointment[]>;
   appointmentsLoading$: Observable<boolean>;
   appointmentsError$: Observable<string | null>;
   loading = true;  
   error: string | null = null;
-  
-
-  
-  // Cached doctor map for performance
-  doctorMap: Map<string, Doctor> = new Map();
   
   // UI state variables
   successMessage: string | null = null;
@@ -83,7 +74,6 @@ export class AppointmentComponent implements OnInit, OnDestroy {
     private appointmentService: AppointmentService,
     private authService:AuthService
   ) {
-    this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.appointments$ = this.store.select(AppointmentSelectors.selectAllAppointments);
     this.appointmentsLoading$ = this.store.select(AppointmentSelectors.selectAppointmentsLoading);
     this.appointmentsError$ = this.store.select(AppointmentSelectors.selectAppointmentsError);
@@ -98,29 +88,12 @@ export class AppointmentComponent implements OnInit, OnDestroy {
       this.error = 'No patient ID available';
       return;
     }
-    this.store.dispatch(DoctorActions.loadDoctors());
     
     setTimeout(() => {
       this.store.dispatch(AppointmentActions.getAppointmentsByPatient({ 
         patientId: this.patientUserId 
       }));
     }, 500);
-    
-    const doctorsSub = this.doctors$.subscribe(doctors => {
-      this.doctorMap.clear();
-      
-      doctors.forEach(doctor => {
-        // Store by userId (GUID)
-        if (doctor.userId) {
-          this.doctorMap.set(doctor.userId, doctor);
-        }
-
-        if (doctor.id) {
-          this.doctorMap.set(doctor.id.toString(), doctor);
-        }
-      });
-    });
-    this.subscriptions.push(doctorsSub);
     
     // Subscribe to appointments
     const appointmentsSub = this.appointments$.subscribe(appointments => {
@@ -191,53 +164,28 @@ export class AppointmentComponent implements OnInit, OnDestroy {
   confirmCancelAppointment(): void {
     if (!this.appointmentToCancel) return;
     
-    const appointment = this.appointmentToCancel;
+    const appointmentId = this.appointmentToCancel.appointmentId;
     this.loading = true;
     this.error = null;
     this.successMessage = null;
     
-    const appointmentId = appointment.appointmentId;
-    
-    // Create payload 
-    const payload = {
-      patientUserId: null,  
-      status: 2  
-    };
-    
-    this.appointmentService.updateAppointment(appointmentId, payload)
-      .subscribe({
-        next: (result) => {
-          this.loading = false;
-          this.successMessage = 'Appointment cancelled successfully';
-          
-          // Remove the cancelled appointment from the list
-          this.appointments = this.appointments.filter(app => 
-            app.appointmentId !== appointmentId
-          );
-          
-          // Also update the _allAppointments list
-          this._allAppointments = this._allAppointments.filter(app => 
-            app.appointmentId !== appointmentId
-          );
-          
-          // Close the modal
-          this.closeCancelModal();
-        },
-        error: (err) => {
-          let errorMsg = 'Unknown error';
-          if (err.error && typeof err.error === 'string') {
-            errorMsg = err.error;
-          } else if (err.message) {
-            errorMsg = err.message;
-          }
-          
-          this.loading = false;
-          this.error = `Failed to cancel appointment: ${errorMsg}`;
-          
-          // Close the modal
-          this.closeCancelModal();
-        }
-      });
+    this.appointmentService.updateAppointment(appointmentId, {
+      patientUserId: null,
+      status: 2
+    }).subscribe({
+      next: () => {
+        this.loading = false;
+        this.successMessage = 'Appointment cancelled successfully';
+        this.appointments = this.appointments.filter(app => app.appointmentId !== appointmentId);
+        this._allAppointments = this._allAppointments.filter(app => app.appointmentId !== appointmentId);
+        this.closeCancelModal();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = `Failed to cancel appointment: ${err.error || err.message || 'Unknown error'}`;
+        this.closeCancelModal();
+      }
+    });
   }
 
   // Close the cancellation modal
@@ -304,60 +252,21 @@ export class AppointmentComponent implements OnInit, OnDestroy {
       return 'Invalid date';
     }
   }
-
-  // Format date with time for display
-  formatDateTime(dateStr: string | undefined): string {
-    if (!dateStr) return 'N/A';
-    
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      return dateStr;
-    }
-  }
   
-  // Get doctor name from doctor ID
-  getDoctorName(doctorId: string | number | undefined): string {
-    if (!doctorId) {
-      return 'Unknown Doctor';
+  // Get doctor name from appointment
+  getDoctorName(appointment: Appointment | string): string {
+    if (typeof appointment === 'string') {
+      return `Doctor ${appointment.substring(0, 8)}`;
     }
     
-    const doctorIdStr = String(doctorId);
-    
-    // First check if we have the doctor in our map
-    const doctor = this.doctorMap.get(doctorIdStr);
-    if (doctor) {
-      if (doctor.firstName && doctor.lastName) {
-        return `Dr. ${doctor.firstName} ${doctor.lastName}`;
-      } else if (doctor.name) {
-        return doctor.name;
-      }
-    }
-    // if the doctorId might be a GUID that was converted to a number
-    if (!isNaN(Number(doctorIdStr))) {
-      const numericId = Number(doctorIdStr);
-      
-      // Get all doctors and find by numeric ID
-      const doctors = Array.from(this.doctorMap.values());
-      const foundDoctor = doctors.find(d => d.id === numericId);
-      
-      if (foundDoctor) {
-        if (foundDoctor.firstName && foundDoctor.lastName) {
-          return `Dr. ${foundDoctor.firstName} ${foundDoctor.lastName}`;
-        } else if (foundDoctor.name) {
-          return foundDoctor.name;
-        }
-      }
+    if (appointment && appointment.doctorName) {
+      return appointment.doctorName;
     }
     
-    // As a last resort, return a placeholder with the ID
-    return `Doctor ${doctorIdStr.substring(0, 8)}`;
+    if (appointment && appointment.doctorUserId) {
+      return `Doctor ${String(appointment.doctorUserId).substring(0, 8)}`;
+    }
+    
+    return 'Unknown Doctor';
   }
 }

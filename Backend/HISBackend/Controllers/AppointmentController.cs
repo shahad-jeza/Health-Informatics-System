@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Bugsnag;
 
 namespace HISBackend.Controllers
 {
@@ -16,10 +17,13 @@ namespace HISBackend.Controllers
     public class AppointmentController : ControllerBase
     {
         private readonly MyAppDbContext _context;
+        private readonly IClient _bugsnag;
 
-        public AppointmentController(MyAppDbContext context)
+
+        public AppointmentController(MyAppDbContext context, IClient bugsnag)
         {
             _context = context;
+            _bugsnag = bugsnag;
         }
 
         // GET: api/appointment/doctor/{doctorUserId}
@@ -132,41 +136,66 @@ namespace HISBackend.Controllers
         [HttpPut("{appointmentId}")]
         public async Task<IActionResult> UpdateAppointment(Guid appointmentId, [FromBody] AppointmentUpdateDto updateDto)
         {
-            var appointment = await _context.Appointments
-                .Include(a => a.Patient)
-                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
-
-            if (appointment == null)
+            try
             {
-                return NotFound();
-            }
+                var appointment = await _context.Appointments
+                    .Include(a => a.Patient)
+                    .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+                // If appointment does not exist, log the event 
 
-            switch (updateDto.Status)
+                if (appointment == null)
+                {
+                    _bugsnag.Notify(new Exception("Appointment not found"), report => {
+                        report.Event.Severity = Severity.Info;
+                        report.Event.Metadata.Add("AppointmentId", appointmentId.ToString());
+                    });
+                    return NotFound();
+                }
+
+                switch (updateDto.Status)
+                {
+                    case AppointmentStatus.Confirmed when updateDto.PatientUserId.HasValue:
+                        var patient = await _context.Users
+                            .FirstOrDefaultAsync(u => u.UserId == updateDto.PatientUserId && u.Role == RoleType.Patient);
+
+                        if (patient == null)
+                        {
+                            _bugsnag.Notify(new Exception("Patient not found"), report => {
+                                report.Event.Severity = Severity.Warning;
+                                report.Event.Metadata.Add("PatientUserId", updateDto.PatientUserId.ToString());
+                            });
+                            return BadRequest("Patient not found");
+                        }
+
+                        appointment.PatientId = patient.Id;
+                        appointment.Status = AppointmentStatus.Confirmed;
+                        break;
+
+                    case AppointmentStatus.Cancelled:
+                        appointment.Status = AppointmentStatus.Cancelled;
+                        appointment.PatientId = null;
+                        break;
+                    // Any unsupported update case triggers a warning
+                    default:
+                        _bugsnag.Notify(new Exception("Invalid status update"), report => {
+                            report.Event.Severity = Severity.Warning;
+                            report.Event.Metadata.Add("Status", updateDto.Status.ToString());
+                        });
+                        return BadRequest("Invalid update operation");
+                }
+
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
             {
-                case AppointmentStatus.Confirmed when updateDto.PatientUserId.HasValue:
-                    var patient = await _context.Users
-                        .FirstOrDefaultAsync(u => u.UserId == updateDto.PatientUserId && u.Role == RoleType.Patient);
+                // Log unexpected exceptions and provide relevant metadata
 
-                    if (patient == null)
-                    {
-                        return BadRequest("Patient not found");
-                    }
-
-                    appointment.PatientId = patient.Id;
-                    appointment.Status = AppointmentStatus.Confirmed;
-                    break;
-
-                case AppointmentStatus.Cancelled:
-                    appointment.Status = AppointmentStatus.Cancelled;
-                    appointment.PatientId = null;
-                    break;
-
-                default:
-                    return BadRequest("Invalid update operation");
+                _bugsnag.Notify(ex, report => {
+                    report.Event.Metadata.Add("Endpoint", "Appointment/Update");
+                });
+                return StatusCode(500, "Failed to update appointment");
             }
-
-            await _context.SaveChangesAsync();
-            return NoContent();
         }
     }
 }

@@ -12,7 +12,6 @@ import * as DoctorActions from '../../../store/doctor/doctor.actions';
 import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 import { AuthService } from '../../../services/auth/auth.service';
 import { NotificationService } from '../../../services/notifications/notification.service';
-
 @Component({
   selector: 'app-book-appointment',
   standalone: true,
@@ -48,17 +47,14 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     private appointmentService: AppointmentService,
     private authService :AuthService,
     private notificationService: NotificationService
-
   ) {
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.doctorsLoading$ = this.store.select(DoctorSelectors.selectDoctorsLoading);
     this.doctorsError$ = this.store.select(DoctorSelectors.selectDoctorsError);
-    
-
   }
   private patientUserId: string = '';
   ngOnInit(): void {
-      // Get dynamic ID first
+
   this.patientUserId = this.authService.getCurrentUserId() || '';
   
   if (!this.patientUserId) {
@@ -117,8 +113,8 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
   getFormattedAppointmentText(apt: Appointment): string {
     if (!apt) return 'Invalid appointment';
     
-    // Extract doctor name using doctorUserId
-    let doctorName = 'Unknown Doctor';
+    // Use doctorName directly from the appointment if available
+    let doctorName = apt.doctorName || 'Unknown Doctor';
     
     // Format date from the ISO string
     let dateStr = 'TBD';
@@ -136,13 +132,12 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
       }
     }
     
-    // Find doctor name from the store
-    const doctorId = apt.doctorUserId;
-    if (doctorId) {
+    // If no doctorName is available in the appointment object, try to get it from store
+    if (doctorName === 'Unknown Doctor' && apt.doctorUserId) {
       this.doctors$.pipe(
         take(1) // Take just once to avoid memory leaks
       ).subscribe(doctors => {
-        const doctor = doctors.find(d => d.userId === doctorId);
+        const doctor = doctors.find(d => d.userId === apt.doctorUserId);
         if (doctor) {
           doctorName = `Dr. ${doctor.firstName} ${doctor.lastName}`;
         }
@@ -175,7 +170,7 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
           this.success = 'Appointment booked successfully!';
         // Show notification
         this.notificationService.showNotification('Appointment Booked', {
-          body: 'Your appointment has been successfully booked!',
+          body: `Your appointment has been successfully booked!`,
           icon: 'assets/HIS-Health-report.png'
           
         });
@@ -190,10 +185,8 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
         
         error: (err) => {
           this.loading = false;
-          this.error = "Failed to book appointment: ${err.error || err.message || 'Unknown error' }";
+          this.error = `Failed to book appointment: ${err.error || err.message || 'Unknown error'}`;
         }
       });
   }
-
-
 }

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Bugsnag;
 using HISBackend.Data;
 using HISBackend.DTOs;
 using Microsoft.AspNetCore.Mvc;
@@ -15,32 +16,47 @@ namespace HISBackend.Controllers
     public class AuthController : ControllerBase
     {
 
-        private readonly IConfiguration _config;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
         private MyAppDbContext _context;
+        private readonly IClient _bugsnag;
 
-        public AuthController(IConfiguration config, MyAppDbContext context)
+
+        public AuthController(Microsoft.Extensions.Configuration.IConfiguration config, MyAppDbContext context, IClient bugsnag)
         {
             _config = config;
             _context = context;
+            _bugsnag = bugsnag;
         }
 
-        // Login endpoint 
-        // api/auth/login
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
 
+            // If user is not found or password verification fails, log the attempt 
             if (user == null || !VerifyPassword(model.Password, user.PasswordHash))
             {
+                _bugsnag.Notify(new Exception("Failed login"), report => {
+                    report.Event.Severity = Severity.Info;
+                });
                 return Unauthorized("Invalid email or password");
             }
 
-            // Generate Token 
-            var token = GenerateJwtToken(user.Email, user.Role.ToString(), user.UserId.ToString());
-            return Ok(new { token });
-
+            try
+            {
+                var token = GenerateJwtToken(user.Email, user.Role.ToString(), user.UserId.ToString());
+                return Ok(new { token });
+            }
+            catch (Exception ex)
+            {
+                // Log unexpected exceptions to Bugsnag
+                _bugsnag.Notify(ex);
+                return StatusCode(500, "Login failed");
+            }
         }
+
+
 
 
         // VerifyPassword method 
