@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Bugsnag;
+using HISBackend.Services;
 
 namespace HISBackend.Controllers
 {
@@ -18,12 +19,13 @@ namespace HISBackend.Controllers
     {
         private readonly MyAppDbContext _context;
         private readonly IClient _bugsnag;
+        private readonly ISmsService _smsService;
 
-
-        public AppointmentController(MyAppDbContext context, IClient bugsnag)
+        public AppointmentController(MyAppDbContext context, IClient bugsnag, ISmsService smsService)
         {
             _context = context;
             _bugsnag = bugsnag;
+            _smsService = smsService;
         }
 
         // GET: api/appointment/doctor/{doctorUserId}
@@ -140,6 +142,7 @@ namespace HISBackend.Controllers
             {
                 var appointment = await _context.Appointments
                     .Include(a => a.Patient)
+                    .Include(a => a.Doctor) 
                     .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
                 // If appointment does not exist, log the event 
 
@@ -169,11 +172,26 @@ namespace HISBackend.Controllers
 
                         appointment.PatientId = patient.Id;
                         appointment.Status = AppointmentStatus.Confirmed;
+
+                        // Send SMS to patient
+                        var patientPhoneNumber = patient.Phone; 
+                        if (!string.IsNullOrEmpty(patientPhoneNumber))
+                        {
+                            var message = $"Dear {patient.FirstName}, your appointment with Dr. {appointment.Doctor.FirstName} is confirmed for {appointment.Date}.";
+                            await _smsService.SendAsync(patientPhoneNumber, message);
+                        }
                         break;
 
                     case AppointmentStatus.Cancelled:
                         appointment.Status = AppointmentStatus.Cancelled;
                         appointment.PatientId = null;
+
+                        // Send SMS notification for cancellation
+                        if (appointment.Patient != null && !string.IsNullOrEmpty(appointment.Patient.Phone))
+                        {
+                            var cancelMessage = $"Dear {appointment.Patient.FirstName}, your appointment scheduled for {appointment.Date} has been cancelled.";
+                            await _smsService.SendAsync(appointment.Patient.Phone, cancelMessage);
+                        }
                         break;
                     // Any unsupported update case triggers a warning
                     default:
