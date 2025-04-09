@@ -11,7 +11,7 @@ import { AppointmentService } from '../../../services/appointments/appointment.s
 import * as DoctorActions from '../../../store/doctor/doctor.actions';
 import * as DoctorSelectors from '../../../store/doctor/doctor.selectors';
 import { AuthService } from '../../../services/auth/auth.service';
-
+import { NotificationService } from '../../../services/notifications/notification.service';
 @Component({
   selector: 'app-book-appointment',
   standalone: true,
@@ -45,7 +45,8 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
   constructor(
     private store: Store,
     private appointmentService: AppointmentService,
-    private authService :AuthService
+    private authService :AuthService,
+    private notificationService: NotificationService
   ) {
     this.doctors$ = this.store.select(DoctorSelectors.selectAllDoctors);
     this.doctorsLoading$ = this.store.select(DoctorSelectors.selectDoctorsLoading);
@@ -167,11 +168,21 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
         next: () => {
           this.loading = false;
           this.success = 'Appointment booked successfully!';
+        // Show notification
+        this.notificationService.showNotification('Appointment Booked', {
+          body: `Your appointment has been successfully booked!`,
+          icon: 'assets/HIS-Health-report.png'
+          
+        });
+        console.log('Current notification permission:', Notification.permission);
           this.availableAppointments = this.availableAppointments.filter(
             apt => apt.appointmentId !== this.selectedAppointmentId
+            
           );
+
           this.selectedAppointmentId = '';
         },
+        
         error: (err) => {
           this.loading = false;
           this.error = `Failed to book appointment: ${err.error || err.message || 'Unknown error'}`;
