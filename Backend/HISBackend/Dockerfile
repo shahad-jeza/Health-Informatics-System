@@ -13,7 +13,7 @@ WORKDIR /app
 
 # Copy published app and SQLite DB
 COPY --from=build /app/out ./
-COPY HISBackend/hisbackend.db ./hisbackend.db
+COPY Backend/HISBackend/hisbackend.db ./hisbackend.db
 
 # Expose port
 EXPOSE 80
