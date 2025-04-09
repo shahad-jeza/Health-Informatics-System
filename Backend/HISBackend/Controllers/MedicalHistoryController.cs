@@ -25,7 +25,7 @@ namespace HISBackend.Controllers
         /// </summary>
         /// <param name="patientUserId">GUID of the patient (User.UserId)</param>
         [HttpGet("{patientUserId}")]
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, Patient")]
         public async Task<ActionResult<MedicalHistoryDto>> GetMedicalHistory(Guid patientUserId)
         {
             var medicalHistory = await _context.MedicalHistories

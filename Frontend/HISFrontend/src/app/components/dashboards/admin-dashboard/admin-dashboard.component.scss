@@ -24,7 +24,7 @@ body {
   border-radius: 5px;
   margin: 10px auto; /* centers the element */
   box-shadow: 5px 5px 5px #939393;
-  width: 90%;
+  width: 100%;
   max-width: 1280px;
   box-sizing: border-box;
 
@@ -72,5 +72,172 @@ body {
 
   @media only screen and (max-width: 1200px) {
     width: 90%;
+  }
+}
+
+// Container-based responsive layout
+.dashboard {
+  padding: 1.5rem;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1750px;
+  box-sizing: border-box;
+  
+  .dashboard-card {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+    height: 100%;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    app-charts {
+      width: 100%;
+      display: block;
+      
+      .charts-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      
+      .chart-card {
+        flex: 1 1 300px;
+        min-width: 280px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+      
+      canvas {
+        max-width: 100%;
+        height: auto !important;
+        margin: 0 auto;
+      }
+    }
+  }
+  
+  section {
+    margin-bottom: 2rem;
+  }
+  
+  .h-100 {
+    height: 100%;
+  }
+}
+
+.middle-section {
+  min-height: 300px;
+  background-color: #fff;
+  border-radius: 5px;
+  margin: 10px auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bottom-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  margin: 10px auto;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.widget {
+  flex: 1 1 300px;
+  min-height: 200px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.widgets-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+}
+
+.widget-item {
+  flex: 1;
+  min-width: 300px;
+}
+// Responsive breakpoints
+
+
+@media (max-width: 992px) {
+  .dashboard-card {
+    padding: 1rem;
+  }
+  
+  .middle-section {
+    min-height: 350px;
+  }
+  
+  .charts-container {
+    flex-direction: column !important;
+  }
+  
+  .chart-card {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 0.75rem;
+  }
+  
+  .dashboard-card {
+    padding: 1rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  section {
+    margin-bottom: 1rem;
+  }
+  
+  .widget {
+    padding: 15px;
+    min-height: 180px;
+  }
+  .widgets-container {
+    flex-direction: column;
+  }
+  
+  .widget-item {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard {
+    padding: 0.5rem;
+  }
+  
+  .dashboard-card {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .widget {
+    padding: 10px;
+    min-height: 150px;
   }
 }

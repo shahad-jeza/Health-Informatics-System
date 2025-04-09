@@ -1,24 +1,41 @@
 
-<!--top section row-->
-<div class="top-section">
-  <app-statistics></app-statistics>
+<div class="container-fluid dashboard">
+  <!-- Statistics Section -->
+  <section class="row mb-4">
+    <div class="col-12">
+      <div class="dashboard-card">
+        <app-statistics></app-statistics>
+      </div>
+    </div>
+  </section>
+
+  <!-- Charts Section -->
+  <section class="row mb-4">
+    <div class="col-12">
+      <div class="dashboard-card">
+        <app-charts></app-charts>
+      </div>
+    </div>
+  </section>
+
+  <!-- Widgets Section -->
+  <section class="row">
+    <div class="col-12">
+      <div class="widgets-container">
+        <!-- Left Widget - Add Appointment -->
+        <div class="widget-item">
+          <div class="dashboard-card h-100">
+            <app-add-appointment></app-add-appointment>
+          </div>
+        </div>
+        
+        <!-- Right Widget - Doctor Summary -->
+        <div class="widget-item">
+          <div class="dashboard-card h-100">
+            <app-doctor-summary></app-doctor-summary>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
-
-
-<!--middle section row-->
-<div class="middle-section">
-  <app-charts></app-charts>
-</div>
-
-
- <!--bottom section row-->
-<div class="bottom-section">
-  <div class="widget left">
-    <app-add-appointment></app-add-appointment>
-  </div>
-  <div class="widget right">
-    <app-doctor-summary></app-doctor-summary>
-  </div>
-</div>
-
-
