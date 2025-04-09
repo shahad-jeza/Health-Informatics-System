@@ -29,15 +29,12 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("RenderPolicy",
-    builder => builder
-            .WithOrigins(
+    options.AddPolicy("RenderPolicy", builder => builder
+        .WithOrigins(
             "http://localhost:4200",
-            "https://his-frontend.onrender.com",
-            ) 
-            .AllowAnyHeader()
-            .AllowAnyMethod());
-
+            "https://his-frontend.onrender.com"  
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 });
 
 // Configure SQLite
