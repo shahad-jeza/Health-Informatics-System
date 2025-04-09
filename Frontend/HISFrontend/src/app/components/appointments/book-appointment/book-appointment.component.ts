@@ -163,9 +163,6 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     this.error = null;
     this.success = null;
     
-
-    
-    // Payload with the required fields
     const payload = {
       PatientUserId: this.patientUserId,
       Status: 1
@@ -173,37 +170,30 @@ export class BookAppointmentComponent implements OnInit, OnDestroy {
     
     this.appointmentService.updateAppointment(this.selectedAppointmentId, payload)
       .subscribe({
-        next: (result) => {
+        next: () => {
           this.loading = false;
           this.success = 'Appointment booked successfully!';
-
-
-          
         // Show notification
         this.notificationService.showNotification('Appointment Booked', {
-          body: `Your appointment has been successfully booked!`,
+          body: 'Your appointment has been successfully booked!',
           icon: 'assets/HIS-Health-report.png'
-        });
-            
           
-          // Remove the booked appointment from the list
+        });
+        console.log('Current notification permission:', Notification.permission);
           this.availableAppointments = this.availableAppointments.filter(
             apt => apt.appointmentId !== this.selectedAppointmentId
+            
           );
+
           this.selectedAppointmentId = '';
         },
+        
         error: (err) => {
-          // Error message handling
-          let errorMsg = 'Unknown error';
-          if (err.error && typeof err.error === 'string') {
-            errorMsg = err.error;
-          } else if (err.message) {
-            errorMsg = err.message;
-          }
-          
           this.loading = false;
-          this.error = `Failed to book appointment: ${errorMsg}`;
+          this.error = "Failed to book appointment: ${err.error || err.message || 'Unknown error' }";
         }
       });
   }
+
+
 }
