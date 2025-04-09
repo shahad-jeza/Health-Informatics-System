@@ -6,7 +6,7 @@ import { AdminStatistics } from '../../models/statistics.model';
   providedIn: 'root'
 })
 export class StatisticsService {
-  private apiUrl = 'http://localhost:5219/api/Admin/statistics'; 
+  private apiUrl = 'https://health-informatics-system.onrender.com/api/Admin/statistics'; 
 
   constructor(private http: HttpClient) { }
 

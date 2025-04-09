@@ -7,7 +7,7 @@ import { AdminSummaryDto } from '../../models/summary.model';
   providedIn: 'root'
 })
 export class SummaryService {
-  private apiUrl = 'http://localhost:5219/api/Admin/summary'; // 
+  private apiUrl = 'https://health-informatics-system.onrender.com/api/Admin/summary'; // 
 
   constructor(private http: HttpClient) { }
   // Fetches the summary data from the API

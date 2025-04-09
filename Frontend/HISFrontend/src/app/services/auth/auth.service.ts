@@ -13,7 +13,7 @@ interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:5219/api/auth';
+  private readonly apiUrl = 'https://health-informatics-system.onrender.com/api/auth';
   private jwtHelper = new JwtHelperService();
   private loggedIn = new BehaviorSubject<boolean>(false);
 

@@ -7,7 +7,7 @@ import { AppointmentCreate } from '../../models/addAppointment.model';
   providedIn: 'root'
 })
 export class AddAppointmentService {
-  private apiUrl = `http://localhost:5219/api/Appointment`; 
+  private apiUrl = `https://health-informatics-system.onrender.com/api/Appointment`; 
 
   constructor(private http: HttpClient) { }
   //post request to create an appointment
