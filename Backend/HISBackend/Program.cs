@@ -4,8 +4,25 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Bugsnag.AspNet.Core;
+using Bugsnag;
+using Microsoft.AspNetCore.Diagnostics;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Add BugSnag configuration
+
+
+builder.Services.AddBugsnag(configuration => {
+    configuration.ApiKey = "5737c307fc96e3e8e3f5db6a74363fbb";
+    configuration.AppVersion = "1.0.0";
+    configuration.ReleaseStage = builder.Environment.EnvironmentName;
+    configuration.NotifyReleaseStages = new[] { "Development", "Staging", "Production" };
+
+});
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -60,6 +77,25 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+
+
+// Add global error handling
+app.UseExceptionHandler(errApp => {
+    errApp.Run(async context => {
+        var bugsnag = context.RequestServices.GetService<IClient>();
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        bugsnag.Notify(exception, report => {
+            report.Event.Metadata.Add("RequestPath", context.Request.Path);
+            report.Event.Metadata.Add("RequestMethod", context.Request.Method);
+        });
+
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("An unexpected error occurred");
+    });
+});
+
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -77,6 +113,26 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+// Add before app.MapControllers()
+app.UseExceptionHandler(exceptionHandlerApp =>
+{
+    exceptionHandlerApp.Run(async context =>
+    {
+        var bugsnag = context.RequestServices.GetRequiredService<IClient>();
+        var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+
+        if (exceptionHandlerFeature?.Error != null)
+        {
+            bugsnag.Notify(exceptionHandlerFeature.Error, report => {
+                report.Event.Metadata.Add("Path", context.Request.Path);
+                report.Event.Metadata.Add("Method", context.Request.Method);
+            });
+        }
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsync("An error occurred");
+    });
+});
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -84,3 +140,4 @@ app.MapControllers();
 app.UseCors("AllowAngularApp");
 
 app.Run();
+
